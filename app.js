@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const session = require('express-session');
 const { initializeDatabase } = require('./config/database');
-const { isAuthenticated, isGuest, isAdmin } = require('./middleware/auth');
+const { isAuthenticated, isAdmin } = require('./middleware/auth');
 require('dotenv').config();
 
 const app = express();
@@ -17,11 +17,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Session
 app.use(session({
     secret: process.env.SESSION_SECRET || 'skin-analyser-secret',
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     cookie: {
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        httpOnly: true
+        httpOnly: true,
+        secure: false
     }
 }));
 
@@ -39,15 +40,6 @@ app.use('/', adminRoutes);
 // Page routes - Public
 app.get('/', (req, res) => {
     res.sendFile('homepage.html', { root: './public' });
-});
-
-// Page routes - Guest
-app.get('/login', isGuest, (req, res) => {
-    res.sendFile('login.html', { root: './public' });
-});
-
-app.get('/register', isGuest, (req, res) => {
-    res.sendFile('register.html', { root: './public' });
 });
 
 // Page routes - Authenticated

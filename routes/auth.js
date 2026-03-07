@@ -54,7 +54,13 @@ router.post('/register', isGuest, async (req, res) => {
             role: 'user'
         };
 
-        res.json({ success: true, message: 'Registration successful!' });
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.status(500).json({ success: false, message: 'Session error. Please try again.' });
+            }
+            res.json({ success: true, message: 'Registration successful!' });
+        });
     } catch (error) {
         console.error('Register error:', error);
         if (error.code === 'ER_DUP_ENTRY') {
@@ -110,7 +116,13 @@ router.post('/login', isGuest, async (req, res) => {
             role: user.role
         };
 
-        res.json({ success: true, message: 'Login successful!', role: user.role });
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.status(500).json({ success: false, message: 'Session error. Please try again.' });
+            }
+            res.json({ success: true, message: 'Login successful!', role: user.role });
+        });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ success: false, message: 'Server error. Please try again.' });
