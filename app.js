@@ -11,10 +11,8 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Session
+// Session (must be before routes)
 app.use(session({
     secret: process.env.SESSION_SECRET || 'skin-analyser-secret',
     resave: true,
@@ -26,7 +24,14 @@ app.use(session({
     }
 }));
 
-// Routes
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Serve static assets (CSS, JS, images) but NOT .html files directly
+// This prevents express.static from intercepting routes like /login, /dashboard etc.
+app.use(express.static(path.join(__dirname, 'public'), { extensions: false }));
+
+// Routes - API & Auth
 const authRoutes = require('./routes/auth');
 const analysisRoutes = require('./routes/analysis');
 const productRoutes = require('./routes/products');

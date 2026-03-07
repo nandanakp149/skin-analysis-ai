@@ -4,8 +4,8 @@ const { pool } = require('../config/database');
 const { isAdmin } = require('../middleware/auth');
 const router = express.Router();
 
-// All admin routes require admin role
-router.use(isAdmin);
+// Apply isAdmin middleware only to /api/admin/* routes (not globally on the router)
+router.use('/api/admin', isAdmin);
 
 // ==================== DASHBOARD ====================
 
