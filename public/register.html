@@ -108,7 +108,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Age</label>
-                        <input type="number" name="age" required min="10" max="120" placeholder="Your age"
+                        <input type="number" name="age" required min="18" max="120" placeholder="Min 18"
                             class="input-glow w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-rose-300 focus:outline-none transition-all duration-200 bg-white/70">
                     </div>
                     <div>
@@ -116,11 +116,20 @@
                         <select name="gender" required
                             class="input-glow w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-rose-300 focus:outline-none transition-all duration-200 bg-white/70 appearance-none">
                             <option value="" disabled selected>Select</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
+                </div>
+
+                <!-- Skin Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Skin Type</label>
+                    <select name="skin_type_id" required id="skinTypeSelect"
+                        class="input-glow w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-rose-300 focus:outline-none transition-all duration-200 bg-white/70 appearance-none">
+                        <option value="" disabled selected>Loading skin types...</option>
+                    </select>
                 </div>
 
                 <!-- Submit Button -->
@@ -147,6 +156,15 @@
     </div>
 
     <script>
+        // Load skin types
+        fetch('/api/skin-types').then(r => r.json()).then(data => {
+            const sel = document.getElementById('skinTypeSelect');
+            if (data.success) {
+                sel.innerHTML = '<option value="" disabled selected>Select your skin type</option>' +
+                    data.skinTypes.map(st => `<option value="${st.skin_type_id}">${st.skin_type_name} — ${st.description}</option>`).join('');
+            }
+        }).catch(() => {});
+
         const form = document.getElementById('registerForm');
         const errorAlert = document.getElementById('errorAlert');
         const errorText = document.getElementById('errorText');

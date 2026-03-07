@@ -122,7 +122,7 @@ Make the response detailed, helpful, and personalized for a ${user.age}-year-old
 
         // Save to database
         await pool.query(
-            'INSERT INTO analysis_history (user_id, image_path, analysis_result) VALUES (?, ?, ?)',
+            'INSERT INTO Analysis_History (user_id, image_path, analysis_result) VALUES (?, ?, ?)',
             [user.id, req.file.filename, analysisText]
         );
 
@@ -146,7 +146,7 @@ Make the response detailed, helpful, and personalized for a ${user.age}-year-old
 router.get('/api/history', isAuthenticated, async (req, res) => {
     try {
         const [rows] = await pool.query(
-            'SELECT id, image_path, analysis_result, created_at FROM analysis_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
+            'SELECT id, image_path, analysis_result, created_at FROM Analysis_History WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
             [req.session.user.id]
         );
         res.json({ success: true, history: rows });
@@ -160,7 +160,7 @@ router.get('/api/history', isAuthenticated, async (req, res) => {
 router.delete('/api/history/:id', isAuthenticated, async (req, res) => {
     try {
         const [rows] = await pool.query(
-            'SELECT image_path FROM analysis_history WHERE id = ? AND user_id = ?',
+            'SELECT image_path FROM Analysis_History WHERE id = ? AND user_id = ?',
             [req.params.id, req.session.user.id]
         );
 
@@ -171,7 +171,7 @@ router.delete('/api/history/:id', isAuthenticated, async (req, res) => {
                 fs.unlinkSync(imagePath);
             }
             // Delete DB record
-            await pool.query('DELETE FROM analysis_history WHERE id = ? AND user_id = ?',
+            await pool.query('DELETE FROM Analysis_History WHERE id = ? AND user_id = ?',
                 [req.params.id, req.session.user.id]);
         }
 

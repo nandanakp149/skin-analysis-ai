@@ -12,11 +12,15 @@ router.get('/register', isGuest, (req, res) => {
 // POST Register
 router.post('/register', isGuest, async (req, res) => {
     try {
-        const { name, email, password, age, gender } = req.body;
+        const { name, email, password, age, gender, skin_type_id } = req.body;
 
         // Validation
         if (!name || !email || !password || !age || !gender) {
             return res.status(400).json({ success: false, message: 'All fields are required' });
+        }
+
+        if (parseInt(age) < 18) {
+            return res.status(400).json({ success: false, message: 'You must be at least 18 years old' });
         }
 
         if (password.length < 6) {
@@ -24,7 +28,7 @@ router.post('/register', isGuest, async (req, res) => {
         }
 
         // Check if user exists
-        const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+        const [existing] = await pool.query('SELECT user_id FROM Users WHERE email = ?', [email]);
         if (existing.length > 0) {
             return res.status(400).json({ success: false, message: 'Email already registered' });
         }
@@ -33,9 +37,10 @@ router.post('/register', isGuest, async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 12);
 
         // Insert user
+        const skinTypeId = skin_type_id ? parseInt(skin_type_id) : null;
         const [result] = await pool.query(
-            'INSERT INTO users (name, email, password, age, gender) VALUES (?, ?, ?, ?, ?)',
-            [name, email, hashedPassword, parseInt(age), gender]
+            'INSERT INTO Users (name, email, password, age, gender, skin_type_id) VALUES (?, ?, ?, ?, ?, ?)',
+            [name, email, hashedPassword, parseInt(age), gender, skinTypeId]
         );
 
         // Auto-login after register
@@ -44,12 +49,17 @@ router.post('/register', isGuest, async (req, res) => {
             name,
             email,
             age: parseInt(age),
-            gender
+            gender,
+            skin_type_id: skinTypeId,
+            role: 'user'
         };
 
         res.json({ success: true, message: 'Registration successful!' });
     } catch (error) {
         console.error('Register error:', error);
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ success: false, message: 'Email already registered' });
+        }
         res.status(500).json({ success: false, message: 'Server error. Please try again.' });
     }
 });
@@ -68,8 +78,14 @@ router.post('/login', isGuest, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Email and password are required' });
         }
 
-        // Find user
-        const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        // Find user with skin type info
+        const [users] = await pool.query(
+            `SELECT u.*, st.skin_type_name 
+             FROM Users u 
+             LEFT JOIN Skin_Type st ON u.skin_type_id = st.skin_type_id 
+             WHERE u.email = ?`,
+            [email]
+        );
         if (users.length === 0) {
             return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
@@ -84,14 +100,17 @@ router.post('/login', isGuest, async (req, res) => {
 
         // Set session
         req.session.user = {
-            id: user.id,
+            id: user.user_id,
             name: user.name,
             email: user.email,
             age: user.age,
-            gender: user.gender
+            gender: user.gender,
+            skin_type_id: user.skin_type_id,
+            skin_type_name: user.skin_type_name,
+            role: user.role
         };
 
-        res.json({ success: true, message: 'Login successful!' });
+        res.json({ success: true, message: 'Login successful!', role: user.role });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ success: false, message: 'Server error. Please try again.' });
@@ -106,8 +125,52 @@ router.get('/logout', (req, res) => {
 });
 
 // GET User info (API)
-router.get('/api/user', isAuthenticated, (req, res) => {
-    res.json({ success: true, user: req.session.user });
+router.get('/api/user', isAuthenticated, async (req, res) => {
+    try {
+        const [users] = await pool.query(
+            `SELECT u.user_id, u.name, u.email, u.age, u.gender, u.skin_type_id, u.role, u.registration_date,
+                    st.skin_type_name
+             FROM Users u 
+             LEFT JOIN Skin_Type st ON u.skin_type_id = st.skin_type_id 
+             WHERE u.user_id = ?`,
+            [req.session.user.id]
+        );
+        if (users.length === 0) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        res.json({ success: true, user: users[0] });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// PUT Update user profile
+router.put('/api/user/profile', isAuthenticated, async (req, res) => {
+    try {
+        const { name, age, gender, skin_type_id } = req.body;
+        await pool.query(
+            'UPDATE Users SET name = ?, age = ?, gender = ?, skin_type_id = ? WHERE user_id = ?',
+            [name, parseInt(age), gender, skin_type_id ? parseInt(skin_type_id) : null, req.session.user.id]
+        );
+        // Update session
+        req.session.user.name = name;
+        req.session.user.age = parseInt(age);
+        req.session.user.gender = gender;
+        req.session.user.skin_type_id = skin_type_id ? parseInt(skin_type_id) : null;
+        res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to update profile' });
+    }
+});
+
+// GET Skin types
+router.get('/api/skin-types', async (req, res) => {
+    try {
+        const [types] = await pool.query('SELECT * FROM Skin_Type ORDER BY skin_type_id');
+        res.json({ success: true, skinTypes: types });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to load skin types' });
+    }
 });
 
 module.exports = router;

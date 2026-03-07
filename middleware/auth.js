@@ -3,6 +3,10 @@ function isAuthenticated(req, res, next) {
     if (req.session && req.session.user) {
         return next();
     }
+    // Check if it's an API request
+    if (req.path.startsWith('/api/')) {
+        return res.status(401).json({ success: false, message: 'Please login to continue' });
+    }
     return res.redirect('/login');
 }
 
@@ -13,4 +17,14 @@ function isGuest(req, res, next) {
     return next();
 }
 
-module.exports = { isAuthenticated, isGuest };
+function isAdmin(req, res, next) {
+    if (req.session && req.session.user && req.session.user.role === 'admin') {
+        return next();
+    }
+    if (req.path.startsWith('/api/')) {
+        return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+    return res.redirect('/login');
+}
+
+module.exports = { isAuthenticated, isGuest, isAdmin };

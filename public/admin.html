@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Skin Analyser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],serif:['Playfair Display','serif']}}}}</script>
+    <style>
+        body{font-family:'Inter',sans-serif}
+        .gradient-bg{background:linear-gradient(135deg,#fdf2f8 0%,#fce7f3 25%,#fff1f2 50%,#f0fdf4 75%,#fdf2f8 100%)}
+        .glass-card{background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.5)}
+        .tab-btn.active{background:linear-gradient(to right,#f43f5e,#ec4899);color:white;box-shadow:0 4px 12px rgba(244,63,94,0.2)}
+        .modal-overlay{background:rgba(0,0,0,0.4);backdrop-filter:blur(4px)}
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <nav class="glass-card sticky top-0 z-50 border-b border-white/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    </div>
+                    <span class="font-serif text-xl font-bold text-gray-800">Admin Panel</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <a href="/" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Home</a>
+                    <a href="/dashboard" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Dashboard</a>
+                    <a href="/logout" class="text-sm text-gray-500 hover:text-rose-500">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Tabs -->
+        <div class="flex flex-wrap gap-2 mb-6" id="tabBar">
+            <button class="tab-btn active px-4 py-2 rounded-xl text-sm font-medium transition-all" data-tab="dashboard">Dashboard</button>
+            <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all" data-tab="users">Users</button>
+            <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all" data-tab="products">Products</button>
+            <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all" data-tab="ingredients">Ingredients</button>
+            <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all" data-tab="reviews">Reviews</button>
+            <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all" data-tab="recommendations">Recs</button>
+            <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all" data-tab="reports">Reports</button>
+            <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all" data-tab="export">Export</button>
+            <button class="tab-btn px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition-all" data-tab="settings">Settings</button>
+        </div>
+
+        <div id="tabContent"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="glass-card rounded-2xl p-6 shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto m-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="modalTitle" class="font-serif text-lg font-bold text-gray-800"></h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+    const API = '/api/admin';
+    let currentTab = 'dashboard';
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentTab = btn.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.classList.add('text-gray-600'); });
+            btn.classList.add('active'); btn.classList.remove('text-gray-600');
+            loadTab(currentTab);
+        });
+    });
+
+    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+    function showModal(title, html) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalBody').innerHTML = html;
+        document.getElementById('modal').classList.remove('hidden');
+    }
+
+    async function api(url, opts) {
+        const res = await fetch(url, opts);
+        return res.json();
+    }
+
+    function statCard(label, value, icon, color) {
+        return `<div class="glass-card rounded-2xl p-5 shadow-md"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-${color}-50 rounded-xl flex items-center justify-center text-lg">${icon}</div><div><p class="text-2xl font-bold text-gray-800">${value}</p><p class="text-xs text-gray-500">${label}</p></div></div></div>`;
+    }
+
+    // ===== Dashboard =====
+    async function loadDashboard() {
+        const d = (await api(`${API}/dashboard`));
+        if (!d.success) return;
+        const s = d.stats;
+        document.getElementById('tabContent').innerHTML = `
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                ${statCard('Total Users', s.totalUsers, '👥', 'blue')}
+                ${statCard('Total Products', s.totalProducts, '🧴', 'pink')}
+                ${statCard('Total Reviews', s.totalReviews, '⭐', 'yellow')}
+                ${statCard('Avg Rating', parseFloat(s.avgRating || 0).toFixed(1), '📊', 'green')}
+            </div>
+            <div class="grid lg:grid-cols-2 gap-6">
+                <div class="glass-card rounded-2xl p-6 shadow-md">
+                    <h3 class="font-semibold text-gray-800 mb-3">Products per Category</h3>
+                    <div class="space-y-2">${s.productsPerCategory.map(c => `
+                        <div class="flex items-center justify-between"><span class="text-sm text-gray-600">${c.category}</span><div class="flex items-center gap-2"><div class="h-2 bg-rose-400 rounded-full" style="width:${c.count * 12}px"></div><span class="text-sm font-medium">${c.count}</span></div></div>
+                    `).join('')}</div>
+                </div>
+                <div class="glass-card rounded-2xl p-6 shadow-md">
+                    <h3 class="font-semibold text-gray-800 mb-3">Users per Skin Type</h3>
+                    <div class="space-y-2">${s.usersPerSkinType.map(t => `
+                        <div class="flex items-center justify-between"><span class="text-sm text-gray-600">${t.skin_type_name}</span><div class="flex items-center gap-2"><div class="h-2 bg-blue-400 rounded-full" style="width:${t.count * 8}px"></div><span class="text-sm font-medium">${t.count}</span></div></div>
+                    `).join('')}</div>
+                </div>
+                <div class="glass-card rounded-2xl p-6 shadow-md">
+                    <h3 class="font-semibold text-gray-800 mb-3">Most Reviewed Products</h3>
+                    <div class="space-y-2">${s.mostReviewed.map(p => `
+                        <div class="flex items-center justify-between"><span class="text-sm text-gray-600 truncate max-w-[200px]">${p.product_name}</span><span class="text-sm font-medium text-rose-500">${p.review_count} reviews</span></div>
+                    `).join('')}</div>
+                </div>
+                <div class="glass-card rounded-2xl p-6 shadow-md">
+                    <h3 class="font-semibold text-gray-800 mb-3">Top Rated Products</h3>
+                    <div class="space-y-2">${s.topRated.map(p => `
+                        <div class="flex items-center justify-between"><span class="text-sm text-gray-600 truncate max-w-[200px]">${p.product_name}</span><span class="text-sm font-medium text-yellow-500">★ ${parseFloat(p.avg_rating).toFixed(1)}</span></div>
+                    `).join('')}</div>
+                </div>
+            </div>`;
+    }
+
+    // ===== Users =====
+    async function loadUsers() {
+        const d = await api(`${API}/users`);
+        if (!d.success) return;
+        document.getElementById('tabContent').innerHTML = `
+            <div class="glass-card rounded-2xl p-6 shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-serif text-xl font-bold text-gray-800">Users (${d.total})</h2>
+                    <input type="text" placeholder="Search users..." id="userSearch" class="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-rose-300 focus:outline-none w-48">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead><tr class="border-b border-gray-200 text-left">
+                            <th class="pb-2 text-gray-500 font-medium">ID</th><th class="pb-2 text-gray-500 font-medium">Name</th><th class="pb-2 text-gray-500 font-medium">Email</th>
+                            <th class="pb-2 text-gray-500 font-medium">Age</th><th class="pb-2 text-gray-500 font-medium">Gender</th><th class="pb-2 text-gray-500 font-medium">Role</th><th class="pb-2 text-gray-500 font-medium">Actions</th>
+                        </tr></thead>
+                        <tbody>${d.users.map(u => `<tr class="border-b border-gray-100">
+                            <td class="py-2">${u.user_id}</td><td class="py-2 font-medium">${u.name}</td><td class="py-2 text-gray-500">${u.email}</td>
+                            <td class="py-2">${u.age}</td><td class="py-2">${u.gender}</td>
+                            <td class="py-2"><span class="px-2 py-0.5 rounded text-xs font-medium ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}">${u.role}</span></td>
+                            <td class="py-2 flex gap-2">
+                                <button onclick="editUser(${u.user_id})" class="text-blue-500 hover:text-blue-700 text-xs font-medium">Edit</button>
+                                <button onclick="deleteUser(${u.user_id})" class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+                            </td>
+                        </tr>`).join('')}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        document.getElementById('userSearch').addEventListener('input', async e => {
+            const s = e.target.value.trim();
+            if (s.length < 2 && s.length > 0) return;
+            const d2 = await api(`${API}/users?search=${encodeURIComponent(s)}`);
+            if (d2.success) { loadTab('users'); }
+        });
+    }
+
+    async function editUser(id) {
+        const d = await api(`${API}/users/${id}`);
+        if (!d.success) return;
+        const u = d.user;
+        showModal('Edit User', `
+            <form id="editUserForm" class="space-y-3">
+                <div><label class="text-sm text-gray-600">Name</label><input name="name" value="${u.name}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+                <div><label class="text-sm text-gray-600">Email</label><input name="email" value="${u.email}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="text-sm text-gray-600">Age</label><input name="age" type="number" value="${u.age}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+                    <div><label class="text-sm text-gray-600">Role</label><select name="role" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"><option ${u.role==='user'?'selected':''}>user</option><option ${u.role==='admin'?'selected':''}>admin</option></select></div>
+                </div>
+                <button type="submit" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-medium rounded-xl text-sm">Save</button>
+            </form>`);
+        document.getElementById('editUserForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            await api(`${API}/users/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(Object.fromEntries(fd)) });
+            closeModal(); loadTab('users');
+        });
+    }
+
+    async function deleteUser(id) {
+        if (!confirm('Delete this user?')) return;
+        await api(`${API}/users/${id}`, { method: 'DELETE' });
+        loadTab('users');
+    }
+
+    // ===== Products =====
+    async function loadProducts() {
+        const d = await api(`${API}/products`);
+        if (!d.success) return;
+        document.getElementById('tabContent').innerHTML = `
+            <div class="glass-card rounded-2xl p-6 shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-serif text-xl font-bold text-gray-800">Products (${d.total})</h2>
+                    <button onclick="addProduct()" class="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-sm font-medium rounded-xl shadow-md">+ Add Product</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead><tr class="border-b border-gray-200 text-left">
+                            <th class="pb-2 text-gray-500 font-medium">ID</th><th class="pb-2 text-gray-500 font-medium">Name</th><th class="pb-2 text-gray-500 font-medium">Brand</th>
+                            <th class="pb-2 text-gray-500 font-medium">Category</th><th class="pb-2 text-gray-500 font-medium">Price</th><th class="pb-2 text-gray-500 font-medium">Actions</th>
+                        </tr></thead>
+                        <tbody>${d.products.map(p => `<tr class="border-b border-gray-100">
+                            <td class="py-2">${p.product_id}</td><td class="py-2 font-medium">${p.product_name}</td><td class="py-2 text-gray-500">${p.brand}</td>
+                            <td class="py-2"><span class="px-2 py-0.5 bg-rose-50 text-rose-600 rounded text-xs">${p.category}</span></td>
+                            <td class="py-2">$${parseFloat(p.price).toFixed(2)}</td>
+                            <td class="py-2 flex gap-2">
+                                <button onclick="editProduct(${p.product_id})" class="text-blue-500 hover:text-blue-700 text-xs font-medium">Edit</button>
+                                <button onclick="deleteProduct(${p.product_id})" class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+                            </td>
+                        </tr>`).join('')}</tbody>
+                    </table>
+                </div>
+            </div>`;
+    }
+
+    function productFormHtml(p = {}) {
+        return `
+        <form id="productForm" class="space-y-3">
+            <div><label class="text-sm text-gray-600">Product Name</label><input name="product_name" value="${p.product_name||''}" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+            <div><label class="text-sm text-gray-600">Brand</label><input name="brand" value="${p.brand||''}" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="text-sm text-gray-600">Category</label><select name="category" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1">
+                    ${['Cleanser','Moisturizer','Sunscreen','Serum','Toner'].map(c=>`<option ${p.category===c?'selected':''}>${c}</option>`).join('')}
+                </select></div>
+                <div><label class="text-sm text-gray-600">Price</label><input name="price" type="number" step="0.01" value="${p.price||''}" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+            </div>
+            <div><label class="text-sm text-gray-600">Suitable Skin Type</label><input name="suitable_skin_type" value="${p.suitable_skin_type||''}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1" placeholder="e.g. Oily, Dry"></div>
+            <div><label class="text-sm text-gray-600">Expiry Date</label><input name="expiry_date" type="date" value="${p.expiry_date ? p.expiry_date.split('T')[0] : ''}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+            <button type="submit" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-medium rounded-xl text-sm">Save</button>
+        </form>`;
+    }
+
+    async function addProduct() {
+        showModal('Add Product', productFormHtml());
+        document.getElementById('productForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            await api(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.fromEntries(fd)) });
+            closeModal(); loadTab('products');
+        });
+    }
+
+    async function editProduct(id) {
+        const d = await api(`${API}/products/${id}`);
+        if (!d.success) return;
+        showModal('Edit Product', productFormHtml(d.product));
+        document.getElementById('productForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            await api(`${API}/products/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.fromEntries(fd)) });
+            closeModal(); loadTab('products');
+        });
+    }
+
+    async function deleteProduct(id) {
+        if (!confirm('Delete this product? This triggers the audit log.')) return;
+        await api(`${API}/products/${id}`, { method:'DELETE' });
+        loadTab('products');
+    }
+
+    // ===== Ingredients =====
+    async function loadIngredients() {
+        const d = await api(`${API}/ingredients`);
+        if (!d.success) return;
+        document.getElementById('tabContent').innerHTML = `
+            <div class="glass-card rounded-2xl p-6 shadow-md">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-serif text-xl font-bold text-gray-800">Ingredients (${d.total})</h2>
+                    <button onclick="addIngredient()" class="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-sm font-medium rounded-xl shadow-md">+ Add</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead><tr class="border-b border-gray-200 text-left">
+                            <th class="pb-2 text-gray-500 font-medium">ID</th><th class="pb-2 text-gray-500 font-medium">Name</th><th class="pb-2 text-gray-500 font-medium">Safety</th>
+                            <th class="pb-2 text-gray-500 font-medium">Side Effects</th><th class="pb-2 text-gray-500 font-medium">Actions</th>
+                        </tr></thead>
+                        <tbody>${d.ingredients.map(i => `<tr class="border-b border-gray-100">
+                            <td class="py-2">${i.ingredient_id}</td><td class="py-2 font-medium">${i.ingredient_name}</td>
+                            <td class="py-2"><span class="px-2 py-0.5 rounded text-xs font-medium ${i.safety_level==='Safe'?'bg-green-100 text-green-700':i.safety_level==='Moderate'?'bg-yellow-100 text-yellow-700':'bg-red-100 text-red-700'}">${i.safety_level}</span></td>
+                            <td class="py-2 text-gray-500 truncate max-w-[200px]">${i.known_side_effects||'-'}</td>
+                            <td class="py-2 flex gap-2">
+                                <button onclick="editIngredient(${i.ingredient_id})" class="text-blue-500 text-xs font-medium">Edit</button>
+                                <button onclick="deleteIngredient(${i.ingredient_id})" class="text-red-500 text-xs font-medium">Delete</button>
+                            </td>
+                        </tr>`).join('')}</tbody>
+                    </table>
+                </div>
+            </div>`;
+    }
+
+    function ingredientFormHtml(i = {}) {
+        return `<form id="ingForm" class="space-y-3">
+            <div><label class="text-sm text-gray-600">Name</label><input name="ingredient_name" value="${i.ingredient_name||''}" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+            <div><label class="text-sm text-gray-600">Safety Level</label><select name="safety_level" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1">
+                ${['Safe','Moderate','Risky'].map(s=>`<option ${i.safety_level===s?'selected':''}>${s}</option>`).join('')}
+            </select></div>
+            <div><label class="text-sm text-gray-600">Known Side Effects</label><textarea name="known_side_effects" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1">${i.known_side_effects||''}</textarea></div>
+            <button type="submit" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-medium rounded-xl text-sm">Save</button>
+        </form>`;
+    }
+
+    async function addIngredient() {
+        showModal('Add Ingredient', ingredientFormHtml());
+        document.getElementById('ingForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            await api(`${API}/ingredients`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.fromEntries(fd)) });
+            closeModal(); loadTab('ingredients');
+        });
+    }
+
+    async function editIngredient(id) {
+        const d = await api(`${API}/ingredients/${id}`);
+        if (!d.success) return;
+        showModal('Edit Ingredient', ingredientFormHtml(d.ingredient));
+        document.getElementById('ingForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            await api(`${API}/ingredients/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.fromEntries(fd)) });
+            closeModal(); loadTab('ingredients');
+        });
+    }
+
+    async function deleteIngredient(id) {
+        if (!confirm('Delete this ingredient?')) return;
+        await api(`${API}/ingredients/${id}`, { method:'DELETE' });
+        loadTab('ingredients');
+    }
+
+    // ===== Reviews =====
+    async function loadReviews() {
+        const d = await api(`${API}/reviews`);
+        if (!d.success) return;
+        document.getElementById('tabContent').innerHTML = `
+            <div class="glass-card rounded-2xl p-6 shadow-md">
+                <h2 class="font-serif text-xl font-bold text-gray-800 mb-4">Reviews (${d.total})</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead><tr class="border-b border-gray-200 text-left">
+                            <th class="pb-2 text-gray-500 font-medium">ID</th><th class="pb-2 text-gray-500 font-medium">User</th><th class="pb-2 text-gray-500 font-medium">Product</th>
+                            <th class="pb-2 text-gray-500 font-medium">Rating</th><th class="pb-2 text-gray-500 font-medium">Comment</th><th class="pb-2 text-gray-500 font-medium">Date</th><th class="pb-2 text-gray-500 font-medium">Actions</th>
+                        </tr></thead>
+                        <tbody>${d.reviews.map(r => `<tr class="border-b border-gray-100">
+                            <td class="py-2">${r.review_id}</td><td class="py-2">${r.user_name||r.user_id}</td><td class="py-2">${r.product_name||r.product_id}</td>
+                            <td class="py-2"><span class="text-yellow-500">${'★'.repeat(r.rating)}</span></td>
+                            <td class="py-2 text-gray-500 truncate max-w-[200px]">${r.comment||'-'}</td>
+                            <td class="py-2 text-gray-400 text-xs">${new Date(r.review_date).toLocaleDateString()}</td>
+                            <td class="py-2">
+                                <button onclick="deleteReview(${r.review_id})" class="text-red-500 text-xs font-medium">Delete</button>
+                            </td>
+                        </tr>`).join('')}</tbody>
+                    </table>
+                </div>
+            </div>`;
+    }
+
+    async function deleteReview(id) {
+        if (!confirm('Delete this review?')) return;
+        await api(`${API}/reviews/${id}`, { method:'DELETE' });
+        loadTab('reviews');
+    }
+
+    // ===== Recommendations =====
+    async function loadRecommendations() {
+        const d = await api(`${API}/recommendations`);
+        if (!d.success) return;
+        document.getElementById('tabContent').innerHTML = `
+            <div class="glass-card rounded-2xl p-6 shadow-md">
+                <h2 class="font-serif text-xl font-bold text-gray-800 mb-4">Recommendations (${d.total})</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead><tr class="border-b border-gray-200 text-left">
+                            <th class="pb-2 text-gray-500 font-medium">ID</th><th class="pb-2 text-gray-500 font-medium">User</th><th class="pb-2 text-gray-500 font-medium">Product</th>
+                            <th class="pb-2 text-gray-500 font-medium">Reason</th><th class="pb-2 text-gray-500 font-medium">Date</th><th class="pb-2 text-gray-500 font-medium">Actions</th>
+                        </tr></thead>
+                        <tbody>${d.recommendations.map(r => `<tr class="border-b border-gray-100">
+                            <td class="py-2">${r.recommendation_id}</td><td class="py-2">${r.user_name||r.user_id}</td><td class="py-2">${r.product_name||r.product_id}</td>
+                            <td class="py-2 text-gray-500 truncate max-w-[200px]">${r.reason||'-'}</td>
+                            <td class="py-2 text-gray-400 text-xs">${new Date(r.recommended_at).toLocaleDateString()}</td>
+                            <td class="py-2"><button onclick="deleteRec(${r.recommendation_id})" class="text-red-500 text-xs font-medium">Delete</button></td>
+                        </tr>`).join('')}</tbody>
+                    </table>
+                </div>
+            </div>`;
+    }
+
+    async function deleteRec(id) {
+        if (!confirm('Delete?')) return;
+        await api(`${API}/recommendations/${id}`, { method:'DELETE' });
+        loadTab('recommendations');
+    }
+
+    // ===== Reports =====
+    async function loadReports() {
+        const [risky, audit] = await Promise.all([
+            api(`${API}/reports/risky-ingredients`),
+            api(`${API}/reports/audit-log`)
+        ]);
+        document.getElementById('tabContent').innerHTML = `
+            <div class="grid lg:grid-cols-2 gap-6">
+                <div class="glass-card rounded-2xl p-6 shadow-md">
+                    <h2 class="font-serif text-lg font-bold text-gray-800 mb-4">⚠️ Risky Ingredients Report</h2>
+                    ${risky.success && risky.data.length ? `<div class="space-y-2">${risky.data.map(r => `
+                        <div class="p-3 bg-red-50 rounded-xl">
+                            <p class="font-medium text-red-700 text-sm">${r.ingredient_name}</p>
+                            <p class="text-xs text-red-500">${r.known_side_effects||'Unknown side effects'}</p>
+                            <p class="text-xs text-gray-500 mt-1">Found in ${r.product_count || 0} products</p>
+                        </div>
+                    `).join('')}</div>` : '<p class="text-gray-400 text-sm">No risky ingredients found</p>'}
+                </div>
+                <div class="glass-card rounded-2xl p-6 shadow-md">
+                    <h2 class="font-serif text-lg font-bold text-gray-800 mb-4">🗑️ Deleted Products Audit Log</h2>
+                    ${audit.success && audit.data.length ? `<div class="space-y-2">${audit.data.map(a => `
+                        <div class="p-3 bg-gray-50 rounded-xl">
+                            <p class="font-medium text-gray-700 text-sm">${a.product_name} by ${a.brand}</p>
+                            <p class="text-xs text-gray-500">${a.category} · $${parseFloat(a.price).toFixed(2)}</p>
+                            <p class="text-xs text-gray-400">Deleted: ${new Date(a.deleted_at).toLocaleString()}</p>
+                        </div>
+                    `).join('')}</div>` : '<p class="text-gray-400 text-sm">No deleted products</p>'}
+                </div>
+            </div>`;
+    }
+
+    // ===== Export =====
+    function loadExport() {
+        const tables = ['Users','Products','Ingredients','Reviews','Recommendations','Product_Ingredients'];
+        document.getElementById('tabContent').innerHTML = `
+            <div class="glass-card rounded-2xl p-6 shadow-md">
+                <h2 class="font-serif text-xl font-bold text-gray-800 mb-4">Export Data as CSV</h2>
+                <p class="text-sm text-gray-500 mb-6">Download any table data as a CSV file for external analysis or reporting.</p>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${tables.map(t => `
+                        <a href="${API}/export/${t}" download class="glass-card rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-center block">
+                            <div class="text-2xl mb-2">📊</div>
+                            <p class="font-medium text-gray-800">${t.replace('_',' ')}</p>
+                            <p class="text-xs text-rose-500 mt-1">Download CSV</p>
+                        </a>
+                    `).join('')}
+                </div>
+            </div>`;
+    }
+
+    // ===== Settings =====
+    function loadSettings() {
+        document.getElementById('tabContent').innerHTML = `
+            <div class="glass-card rounded-2xl p-6 shadow-md max-w-md">
+                <h2 class="font-serif text-xl font-bold text-gray-800 mb-4">Change Admin Password</h2>
+                <form id="pwForm" class="space-y-3">
+                    <div><label class="text-sm text-gray-600">Current Password</label><input name="currentPassword" type="password" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+                    <div><label class="text-sm text-gray-600">New Password</label><input name="newPassword" type="password" required minlength="6" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-1"></div>
+                    <p id="pwMsg" class="text-sm hidden"></p>
+                    <button type="submit" class="w-full py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-medium rounded-xl text-sm">Update Password</button>
+                </form>
+            </div>`;
+        document.getElementById('pwForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const d = await api(`${API}/change-password`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.fromEntries(fd)) });
+            const msg = document.getElementById('pwMsg');
+            msg.classList.remove('hidden','text-green-500','text-red-500');
+            msg.classList.add(d.success ? 'text-green-500' : 'text-red-500');
+            msg.textContent = d.message;
+        });
+    }
+
+    // Tab router
+    function loadTab(tab) {
+        switch(tab) {
+            case 'dashboard': loadDashboard(); break;
+            case 'users': loadUsers(); break;
+            case 'products': loadProducts(); break;
+            case 'ingredients': loadIngredients(); break;
+            case 'reviews': loadReviews(); break;
+            case 'recommendations': loadRecommendations(); break;
+            case 'reports': loadReports(); break;
+            case 'export': loadExport(); break;
+            case 'settings': loadSettings(); break;
+        }
+    }
+
+    loadTab('dashboard');
+    </script>
+</body>
+</html>
