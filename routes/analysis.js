@@ -55,7 +55,7 @@ router.post('/api/analyze', isAuthenticated, upload.single('skinImage'), async (
         const mimeType = req.file.mimetype;
 
         // Use Gemini 1.5 Flash for vision analysis
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
         const prompt = `You are an expert dermatologist and skincare advisor. Analyze the skin in this image for a ${user.age}-year-old ${user.gender}.
 
