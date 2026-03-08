@@ -42,7 +42,8 @@ router.get('/api/products', async (req, res) => {
         else if (sort === 'price_desc') orderBy = 'ps.price DESC';
         else if (sort === 'rating') orderBy = 'ps.avg_rating DESC';
         else if (sort === 'reviews') orderBy = 'ps.review_count DESC';
-        else if (sort === 'name') orderBy = 'ps.product_name ASC';
+        else if (sort === 'name' || sort === 'name_asc') orderBy = 'ps.product_name ASC';
+        else if (sort === 'name_desc') orderBy = 'ps.product_name DESC';
 
         // Get total count
         const [countResult] = await pool.query(

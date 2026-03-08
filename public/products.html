@@ -146,8 +146,8 @@
             params.set('limit', '12');
             if (filters.category) params.set('category', filters.category);
             if (filters.search) params.set('search', filters.search);
-            if (filters.priceMin) params.set('priceMin', filters.priceMin);
-            if (filters.priceMax) params.set('priceMax', filters.priceMax);
+            if (filters.priceMin) params.set('min_price', filters.priceMin);
+            if (filters.priceMax) params.set('max_price', filters.priceMax);
             if (filters.sort) params.set('sort', filters.sort);
 
             try {
@@ -155,7 +155,7 @@
                 const data = await res.json();
                 if (!data.success) return;
 
-                document.getElementById('resultCount').textContent = `${data.total} product${data.total !== 1 ? 's' : ''} found`;
+                document.getElementById('resultCount').textContent = `${data.pagination.total} product${data.pagination.total !== 1 ? 's' : ''} found`;
 
                 const grid = document.getElementById('productsGrid');
                 if (data.products.length === 0) {
@@ -188,7 +188,7 @@
                 }
 
                 // Pagination
-                renderPagination(data.page, data.totalPages);
+                renderPagination(data.pagination.page, data.pagination.pages);
             } catch (err) {
                 console.error(err);
             }
