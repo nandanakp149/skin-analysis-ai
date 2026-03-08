@@ -12,7 +12,7 @@ router.use('/api/admin', isAdmin);
 router.get('/api/admin/dashboard', async (req, res) => {
     try {
         // Aggregate queries for dashboard stats
-        const [totalUsers] = await pool.query('SELECT COUNT(*) as count FROM Users WHERE role = "user"');
+        const [totalUsers] = await pool.query("SELECT COUNT(*) as count FROM Users WHERE role = 'user'");
         const [totalProducts] = await pool.query('SELECT COUNT(*) as count FROM Products');
         const [totalReviews] = await pool.query('SELECT COUNT(*) as count FROM Reviews');
         const [totalIngredients] = await pool.query('SELECT COUNT(*) as count FROM Ingredients');
@@ -145,6 +145,24 @@ router.get('/api/admin/users', async (req, res) => {
     }
 });
 
+// GET single user (for edit modal)
+router.get('/api/admin/users/:id', async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            `SELECT u.user_id, u.name, u.email, u.age, u.gender, u.role, u.registration_date, u.skin_type_id, st.skin_type_name
+             FROM Users u
+             LEFT JOIN Skin_Type st ON u.skin_type_id = st.skin_type_id
+             WHERE u.user_id = ?`,
+            [req.params.id]
+        );
+        if (rows.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
+        res.json({ success: true, user: rows[0] });
+    } catch (error) {
+        console.error('Get user error:', error);
+        res.status(500).json({ success: false, message: 'Failed to load user' });
+    }
+});
+
 router.put('/api/admin/users/:id', async (req, res) => {
     try {
         const { name, email, age, gender, skin_type_id, role } = req.body;
@@ -211,6 +229,34 @@ router.get('/api/admin/products', async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Failed to load products' });
+    }
+});
+
+// GET single product (for edit modal)
+router.get('/api/admin/products/:id', async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            `SELECT p.*, ps.avg_rating, ps.review_count
+             FROM Products p
+             LEFT JOIN ProductSummary ps ON p.product_id = ps.product_id
+             WHERE p.product_id = ?`,
+            [req.params.id]
+        );
+        if (rows.length === 0) return res.status(404).json({ success: false, message: 'Product not found' });
+
+        const product = rows[0];
+        const [ingredients] = await pool.query(
+            `SELECT i.ingredient_id, i.ingredient_name
+             FROM Ingredients i
+             JOIN Product_Ingredients pi ON i.ingredient_id = pi.ingredient_id
+             WHERE pi.product_id = ?`,
+            [req.params.id]
+        );
+
+        res.json({ success: true, product: { ...product, ingredients } });
+    } catch (error) {
+        console.error('Get product error:', error);
+        res.status(500).json({ success: false, message: 'Failed to load product' });
     }
 });
 
@@ -301,15 +347,32 @@ router.get('/api/admin/ingredients', async (req, res) => {
     }
 });
 
+// GET single ingredient (for edit modal)
+router.get('/api/admin/ingredients/:id', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM Ingredients WHERE ingredient_id = ?', [req.params.id]);
+        if (rows.length === 0) return res.status(404).json({ success: false, message: 'Ingredient not found' });
+        res.json({ success: true, ingredient: rows[0] });
+    } catch (error) {
+        console.error('Get ingredient error:', error);
+        res.status(500).json({ success: false, message: 'Failed to load ingredient' });
+    }
+});
+
 router.post('/api/admin/ingredients', async (req, res) => {
     try {
         const { ingredient_name, safety_level, description } = req.body;
         if (!ingredient_name || !safety_level) {
             return res.status(400).json({ success: false, message: 'Name and safety level are required' });
         }
+        // Validate safety_level against DB enum
+        const validLevels = ['Safe', 'Moderate', 'High Risk'];
+        if (!validLevels.includes(safety_level)) {
+            return res.status(400).json({ success: false, message: 'Invalid safety level. Use Safe, Moderate, or High Risk.' });
+        }
         const [result] = await pool.query(
             'INSERT INTO Ingredients (ingredient_name, safety_level, description) VALUES (?, ?, ?)',
-            [ingredient_name, safety_level, description]
+            [ingredient_name, safety_level, description || null]
         );
         res.json({ success: true, message: 'Ingredient added', ingredientId: result.insertId });
     } catch (error) {
@@ -323,9 +386,13 @@ router.post('/api/admin/ingredients', async (req, res) => {
 router.put('/api/admin/ingredients/:id', async (req, res) => {
     try {
         const { ingredient_name, safety_level, description } = req.body;
+        const validLevels = ['Safe', 'Moderate', 'High Risk'];
+        if (!ingredient_name || !safety_level || !validLevels.includes(safety_level)) {
+            return res.status(400).json({ success: false, message: 'Invalid ingredient data' });
+        }
         await pool.query(
             'UPDATE Ingredients SET ingredient_name=?, safety_level=?, description=? WHERE ingredient_id=?',
-            [ingredient_name, safety_level, description, req.params.id]
+            [ingredient_name, safety_level, description || null, req.params.id]
         );
         res.json({ success: true, message: 'Ingredient updated' });
     } catch (error) {
@@ -400,7 +467,9 @@ router.get('/api/admin/recommendations', async (req, res) => {
         const offset = (parseInt(page) - 1) * parseInt(limit);
         const [countResult] = await pool.query('SELECT COUNT(*) as total FROM Recommendations');
         const [recommendations] = await pool.query(
-            `SELECT * FROM UserRecommendations ORDER BY recommendation_date DESC LIMIT ? OFFSET ?`,
+            `SELECT recommendation_id, user_id, user_name, email, product_name, brand, category, price,
+                    skin_issue AS reason, recommendation_date AS recommended_at
+             FROM UserRecommendations ORDER BY recommendation_date DESC LIMIT ? OFFSET ?`,
             [parseInt(limit), offset]
         );
         res.json({
@@ -492,12 +561,17 @@ router.get('/api/admin/export/:table', async (req, res) => {
 
 router.put('/api/admin/change-password', async (req, res) => {
     try {
-        const { current_password, new_password } = req.body;
+        // Accept both camelCase (from form) and snake_case field names
+        const current_password = req.body.current_password || req.body.currentPassword;
+        const new_password     = req.body.new_password     || req.body.newPassword;
+
         if (!current_password || !new_password || new_password.length < 6) {
-            return res.status(400).json({ success: false, message: 'Invalid password' });
+            return res.status(400).json({ success: false, message: 'Invalid password data. New password must be at least 6 characters.' });
         }
 
         const [users] = await pool.query('SELECT password FROM Users WHERE user_id = ?', [req.session.user.id]);
+        if (!users.length) return res.status(404).json({ success: false, message: 'User not found' });
+
         const isMatch = await bcrypt.compare(current_password, users[0].password);
         if (!isMatch) {
             return res.status(400).json({ success: false, message: 'Current password is incorrect' });
@@ -507,6 +581,7 @@ router.put('/api/admin/change-password', async (req, res) => {
         await pool.query('UPDATE Users SET password = ? WHERE user_id = ?', [hash, req.session.user.id]);
         res.json({ success: true, message: 'Password changed successfully' });
     } catch (error) {
+        console.error('Change password error:', error);
         res.status(500).json({ success: false, message: 'Failed to change password' });
     }
 });
