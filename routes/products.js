@@ -7,8 +7,8 @@ const router = express.Router();
 router.get('/api/products', async (req, res) => {
     try {
         const { category, brand, min_price, max_price, search, page = 1, limit = 12, sort } = req.query;
-        const pageNum = parseInt(page);
-        const limitNum = parseInt(limit);
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 12;
         const offset = (pageNum - 1) * limitNum;
 
         let where = [];
@@ -54,8 +54,8 @@ router.get('/api/products', async (req, res) => {
 
         // Get products
         const [products] = await pool.query(
-            `SELECT * FROM ProductSummary ps ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
-            [...params, limitNum, offset]
+            `SELECT * FROM ProductSummary ps ${whereClause} ORDER BY ${orderBy} LIMIT ${limitNum} OFFSET ${offset}`,
+            params
         );
 
         // Get all brands for filter

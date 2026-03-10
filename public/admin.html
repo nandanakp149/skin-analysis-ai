@@ -207,7 +207,7 @@
                     <div class="space-y-2">${(d.maxPricePerCategory || []).map(c => `
                         <div class="flex items-center justify-between text-sm">
                             <span class="text-gray-600">${c.category}</span>
-                            <span class="text-gray-800 font-medium">$${parseFloat(c.min_price).toFixed(0)}–$${parseFloat(c.max_price).toFixed(0)} <span class="text-gray-400">(avg $${parseFloat(c.avg_price).toFixed(0)})</span></span>
+                            <span class="text-gray-800 font-medium">₹${parseFloat(c.min_price).toFixed(0)}–₹${parseFloat(c.max_price).toFixed(0)} <span class="text-gray-400">(avg ₹${parseFloat(c.avg_price).toFixed(0)})</span></span>
                         </div>`).join('')}</div>
                 </div>
                 <div class="glass-card rounded-2xl p-6 shadow-md">
@@ -393,7 +393,7 @@
                                 <td class="py-2 font-medium">${escHtml(p.product_name)}</td>
                                 <td class="py-2 text-gray-500">${escHtml(p.brand)}</td>
                                 <td class="py-2"><span class="px-2 py-0.5 bg-rose-50 text-rose-600 rounded text-xs">${p.category}</span></td>
-                                <td class="py-2">$${parseFloat(p.price).toFixed(2)}</td>
+                                <td class="py-2">₹${p.price != null ? parseFloat(p.price).toFixed(2) : '0.00'}</td>
                                 <td class="py-2 text-yellow-500">${p.avg_rating ? '★ ' + parseFloat(p.avg_rating).toFixed(1) : '–'}</td>
                                 <td class="py-2 flex gap-2">
                                     <button onclick="editProduct(${p.product_id})" class="text-blue-500 hover:text-blue-700 text-xs font-medium">Edit</button>
@@ -742,7 +742,7 @@
                         ? `<div class="space-y-2">${audit.data.map(a => `
                             <div class="p-3 bg-gray-50 rounded-xl">
                                 <p class="font-medium text-gray-700 text-sm">${escHtml(a.product_name)} <span class="text-gray-400">by</span> ${escHtml(a.brand)}</p>
-                                <p class="text-xs text-gray-500">${a.category} · $${parseFloat(a.price).toFixed(2)}</p>
+                                <p class="text-xs text-gray-500">${a.category} · ₹${a.price != null ? parseFloat(a.price).toFixed(2) : '0.00'}</p>
                                 <p class="text-xs text-gray-400">Deleted: ${new Date(a.deleted_at).toLocaleString()}</p>
                             </div>`).join('')}</div>`
                         : '<p class="text-gray-400 text-sm">No deleted products on record</p>'}

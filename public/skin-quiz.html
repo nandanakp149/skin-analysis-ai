@@ -191,7 +191,7 @@
                                                 <h3 class="font-semibold text-gray-800 text-lg">${r.product_name}</h3>
                                                 <p class="text-sm text-gray-500">${r.brand} · ${r.category}</p>
                                             </div>
-                                            <p class="text-xl font-bold text-rose-500">$${parseFloat(r.price).toFixed(2)}</p>
+                                            <p class="text-xl font-bold text-rose-500">₹${r.price != null ? parseFloat(r.price).toFixed(2) : '0.00'}</p>
                                         </div>
                                         <p class="text-sm text-gray-500 mt-2">Recommended for: <span class="text-rose-500 font-medium">${r.reason}</span></p>
                                         <div class="flex items-center gap-4 mt-3">

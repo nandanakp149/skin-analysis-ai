@@ -15,7 +15,7 @@
         .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); }
         .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
         .star { color: #fbbf24; }
-        .filter-btn.active { background: linear-gradient(to right, #f43f5e, #ec4899); color: white; }
+        .filter-btn.active { background: linear-gradient(to right, #f43f5e, #ec4899); color: white !important; }
     </style>
 </head>
 <body class="gradient-bg min-h-screen">
@@ -180,8 +180,8 @@
                                 <span class="text-xs text-gray-400">${p.avg_rating ? parseFloat(p.avg_rating).toFixed(1) : 'N/A'} (${p.review_count || 0})</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <p class="text-xl font-bold text-rose-500">$${parseFloat(p.price).toFixed(2)}</p>
-                                <span class="text-xs text-gray-400">Suitable for: ${p.suitable_skin_type || 'All'}</span>
+                                <p class="text-xl font-bold text-rose-500">₹${p.price ? parseFloat(p.price).toFixed(2) : '0.00'}</p>
+                                <span class="text-xs text-gray-400">Category: ${p.category || 'Unknown'}</span>
                             </div>
                         </a>
                     `).join('');

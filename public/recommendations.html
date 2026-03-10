@@ -84,7 +84,7 @@
                                         <p class="text-xs text-gray-400 mt-1">Recommended on ${new Date(r.recommended_at).toLocaleDateString()}</p>
                                     </div>
                                     <div class="flex items-center gap-4">
-                                        <p class="text-2xl font-bold text-rose-500">$${parseFloat(r.price).toFixed(2)}</p>
+                                        <p class="text-2xl font-bold text-rose-500">₹${r.price ? parseFloat(r.price).toFixed(2) : '0.00'}</p>
                                         <a href="/products/${r.product_id}" class="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg transition-all whitespace-nowrap">View Product</a>
                                     </div>
                                 </div>
