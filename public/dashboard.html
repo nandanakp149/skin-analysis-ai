@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Skin Analyser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], serif: ['Playfair Display','serif'] } } }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #fdf2f8 0%, #fff1f2 50%, #fdf2f8 100%); }
+        .glass-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); }
+        .feature-card:hover { transform: translateY(-6px); }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Navbar -->
+    <nav class="glass-card sticky top-0 z-50 border-b border-white/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                    </div>
+                    <span class="font-serif text-xl font-bold text-gray-800">Skin Analyser</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="/" class="text-gray-600 hover:text-rose-500 font-medium text-sm transition-colors">Home</a>
+                    <a href="/dashboard" class="text-rose-500 font-medium text-sm">Dashboard</a>
+                    <a href="/products" class="text-gray-600 hover:text-rose-500 font-medium text-sm transition-colors">Products</a>
+                    <a href="/analyze" class="text-gray-600 hover:text-rose-500 font-medium text-sm transition-colors">Analyze</a>
+                    <a href="/history" class="text-gray-600 hover:text-rose-500 font-medium text-sm transition-colors">History</a>
+                    <a id="adminLink" href="/admin" class="hidden text-purple-600 hover:text-purple-700 font-medium text-sm transition-colors">Admin</a>
+                    <div class="w-px h-6 bg-gray-200"></div>
+                    <span id="userName" class="text-sm text-gray-600 hidden sm:inline"></span>
+                    <a href="/logout" class="text-sm text-gray-500 hover:text-rose-500 transition-colors flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center gap-2 bg-rose-50 border border-rose-100 rounded-full px-4 py-1.5 mb-6">
+                <div class="w-2 h-2 bg-rose-400 rounded-full animate-pulse"></div>
+                <span class="text-sm text-rose-600 font-medium">AI-Powered Analysis</span>
+            </div>
+            <h1 class="font-serif text-4xl sm:text-5xl font-bold text-gray-800 mb-4">
+                Welcome back, <span id="heroName" class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">User</span>
+            </h1>
+            <p class="text-gray-500 text-lg max-w-2xl mx-auto">
+                Upload a photo of your skin and get instant AI-powered analysis with personalized product recommendations.
+            </p>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <!-- Analyze Card -->
+            <a href="/analyze" class="feature-card glass-card rounded-2xl p-6 shadow-lg shadow-rose-50 transition-all duration-300 group cursor-pointer">
+                <div class="w-14 h-14 bg-gradient-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-shadow">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">New Analysis</h3>
+                <p class="text-gray-500 text-sm">Upload a skin image and get instant AI insights with product recommendations.</p>
+                <div class="mt-4 flex items-center text-rose-500 text-sm font-medium group-hover:gap-2 transition-all">
+                    Start Now
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+            </a>
+
+            <!-- History Card -->
+            <a href="/history" class="feature-card glass-card rounded-2xl p-6 shadow-lg shadow-rose-50 transition-all duration-300 group cursor-pointer">
+                <div class="w-14 h-14 bg-gradient-to-br from-violet-400 to-purple-500 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-shadow">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Analysis History</h3>
+                <p class="text-gray-500 text-sm">View your past skin analyses and track your skin health progress over time.</p>
+                <div class="mt-4 flex items-center text-violet-500 text-sm font-medium group-hover:gap-2 transition-all">
+                    View History
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+            </a>
+
+            <!-- Profile Card -->
+            <div class="feature-card glass-card rounded-2xl p-6 shadow-lg shadow-rose-50 transition-all duration-300">
+                <div class="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mb-4 shadow-md">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Your Profile</h3>
+                <div id="profileInfo" class="text-gray-500 text-sm space-y-1">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Feature Cards -->
+        <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-6">
+            <a href="/products" class="feature-card glass-card rounded-2xl p-6 shadow-lg shadow-rose-50 transition-all duration-300 group cursor-pointer">
+                <div class="w-14 h-14 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-shadow">
+                    <span class="text-2xl">🧴</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Browse Products</h3>
+                <p class="text-gray-500 text-sm">Explore skincare products with ratings, reviews and ingredient details.</p>
+                <div class="mt-4 flex items-center text-amber-500 text-sm font-medium">Browse <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div>
+            </a>
+
+            <a href="/skin-quiz" class="feature-card glass-card rounded-2xl p-6 shadow-lg shadow-rose-50 transition-all duration-300 group cursor-pointer">
+                <div class="w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-shadow">
+                    <span class="text-2xl">💡</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Skin Quiz</h3>
+                <p class="text-gray-500 text-sm">Get personalized product recommendations based on your skin concerns.</p>
+                <div class="mt-4 flex items-center text-sky-500 text-sm font-medium">Take Quiz <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div>
+            </a>
+
+            <a href="/my-recommendations" class="feature-card glass-card rounded-2xl p-6 shadow-lg shadow-rose-50 transition-all duration-300 group cursor-pointer">
+                <div class="w-14 h-14 bg-gradient-to-br from-fuchsia-400 to-pink-500 rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:shadow-lg transition-shadow">
+                    <span class="text-2xl">⭐</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">My Recommendations</h3>
+                <p class="text-gray-500 text-sm">View products recommended specifically for your skin type.</p>
+                <div class="mt-4 flex items-center text-fuchsia-500 text-sm font-medium">View <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div>
+            </a>
+        </div>
+
+        <!-- How it works -->
+        <div class="mt-20 text-center">
+            <h2 class="font-serif text-2xl font-bold text-gray-800 mb-8">How It Works</h2>
+            <div class="grid sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-rose-500 font-bold text-lg">1</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-700 mb-1">Upload Photo</h4>
+                    <p class="text-sm text-gray-500">Take or upload a clear photo of your skin concern</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-rose-500 font-bold text-lg">2</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-700 mb-1">AI Analysis</h4>
+                    <p class="text-sm text-gray-500">Our AI analyzes your skin based on your age & gender</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-rose-500 font-bold text-lg">3</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-700 mb-1">Get Recommendations</h4>
+                    <p class="text-sm text-gray-500">Receive personalized product suggestions & routines</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Load user info
+        fetch('/api/user')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const u = data.user;
+                    document.getElementById('userName').textContent = u.name;
+                    document.getElementById('heroName').textContent = u.name.split(' ')[0];
+                    document.getElementById('profileInfo').innerHTML = `
+                        <p><span class="text-gray-700 font-medium">Name:</span> ${u.name}</p>
+                        <p><span class="text-gray-700 font-medium">Email:</span> ${u.email}</p>
+                        <p><span class="text-gray-700 font-medium">Age:</span> ${u.age}</p>
+                        <p><span class="text-gray-700 font-medium">Gender:</span> ${u.gender}</p>
+                        <p><span class="text-gray-700 font-medium">Skin Type:</span> ${u.skin_type_name || 'Not set'}</p>
+                    `;
+                    if (u.role === 'admin') {
+                        document.getElementById('adminLink').classList.remove('hidden');
+                    }
+                }
+            });
+    </script>
+</body>
+</html>

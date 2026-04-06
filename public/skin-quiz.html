@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Quiz | Skin Analyser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], serif: ['Playfair Display','serif'] } } } }</script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #fff1f2 50%, #f0fdf4 75%, #fdf2f8 100%); }
+        .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); }
+        .concern-btn { transition: all 0.3s; }
+        .concern-btn.selected { background: linear-gradient(to right, #f43f5e, #ec4899); color: white; transform: scale(1.05); box-shadow: 0 8px 20px rgba(244,63,94,0.2); }
+        .star { color: #fbbf24; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Navbar -->
+    <nav class="glass-card sticky top-0 z-50 border-b border-white/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    </div>
+                    <span class="font-serif text-xl font-bold text-gray-800">Skin Analyser</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <a href="/" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Home</a>
+                    <a href="/products" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Products</a>
+                    <a href="/dashboard" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Dashboard</a>
+                    <a href="/my-recommendations" class="text-gray-600 hover:text-rose-500 font-medium text-sm">My Recs</a>
+                    <a href="/logout" class="text-sm text-gray-500 hover:text-rose-500">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Quiz Section -->
+        <div id="quizSection">
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center gap-2 bg-rose-50 border border-rose-100 rounded-full px-4 py-1.5 mb-4">
+                    <span class="text-sm text-rose-600 font-medium">Personalized Recommendations</span>
+                </div>
+                <h1 class="font-serif text-3xl sm:text-4xl font-bold text-gray-800 mb-3">Skin Quiz</h1>
+                <p class="text-gray-500">Select your skin concerns and we'll recommend the best products for you</p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-8 shadow-lg">
+                <h2 class="font-semibold text-gray-800 text-lg mb-2">What are your skin concerns?</h2>
+                <p class="text-sm text-gray-400 mb-6">Select one or more concerns</p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8" id="concernsGrid">
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Acne">
+                        <div class="text-2xl mb-1">🔴</div>
+                        <span class="text-sm font-medium text-gray-700">Acne</span>
+                    </button>
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Dark Spots">
+                        <div class="text-2xl mb-1">🟤</div>
+                        <span class="text-sm font-medium text-gray-700">Dark Spots</span>
+                    </button>
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Dryness">
+                        <div class="text-2xl mb-1">🏜️</div>
+                        <span class="text-sm font-medium text-gray-700">Dryness</span>
+                    </button>
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Oiliness">
+                        <div class="text-2xl mb-1">💦</div>
+                        <span class="text-sm font-medium text-gray-700">Oiliness</span>
+                    </button>
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Wrinkles">
+                        <div class="text-2xl mb-1">〰️</div>
+                        <span class="text-sm font-medium text-gray-700">Wrinkles</span>
+                    </button>
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Redness">
+                        <div class="text-2xl mb-1">🌡️</div>
+                        <span class="text-sm font-medium text-gray-700">Redness</span>
+                    </button>
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Uneven Tone">
+                        <div class="text-2xl mb-1">🎨</div>
+                        <span class="text-sm font-medium text-gray-700">Uneven Tone</span>
+                    </button>
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Large Pores">
+                        <div class="text-2xl mb-1">🔍</div>
+                        <span class="text-sm font-medium text-gray-700">Large Pores</span>
+                    </button>
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Sun Damage">
+                        <div class="text-2xl mb-1">☀️</div>
+                        <span class="text-sm font-medium text-gray-700">Sun Damage</span>
+                    </button>
+                    <button class="concern-btn glass-card rounded-xl p-4 text-center" data-concern="Sensitivity">
+                        <div class="text-2xl mb-1">🛡️</div>
+                        <span class="text-sm font-medium text-gray-700">Sensitivity</span>
+                    </button>
+                </div>
+
+                <p id="quizError" class="text-sm text-red-500 hidden mb-4"></p>
+
+                <button id="getRecsBtn" class="w-full py-3.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg shadow-rose-200 hover:shadow-xl transition-all disabled:opacity-50">
+                    Get My Recommendations
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden">
+            <div class="text-center mb-8">
+                <h1 class="font-serif text-3xl font-bold text-gray-800 mb-2">Your Recommendations</h1>
+                <p class="text-gray-500">Based on your skin concerns: <span id="selectedConcerns" class="text-rose-500 font-medium"></span></p>
+            </div>
+
+            <div id="resultsGrid" class="space-y-4"></div>
+
+            <div class="flex items-center justify-center gap-4 mt-8">
+                <button onclick="retakeQuiz()" class="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:border-rose-300 transition-all text-sm">Retake Quiz</button>
+                <a href="/my-recommendations" class="px-6 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all text-sm">View All Recommendations</a>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loadingSection" class="hidden text-center py-16">
+            <div class="inline-flex items-center gap-3 text-gray-500">
+                <svg class="animate-spin w-6 h-6 text-rose-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span>Analyzing your skin concerns...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedConcerns = new Set();
+
+        // Concern selection
+        document.querySelectorAll('.concern-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const concern = btn.dataset.concern;
+                if (selectedConcerns.has(concern)) {
+                    selectedConcerns.delete(concern);
+                    btn.classList.remove('selected');
+                } else {
+                    selectedConcerns.add(concern);
+                    btn.classList.add('selected');
+                }
+            });
+        });
+
+        // Get recommendations
+        document.getElementById('getRecsBtn').addEventListener('click', async () => {
+            const errEl = document.getElementById('quizError');
+            if (selectedConcerns.size === 0) {
+                errEl.textContent = 'Please select at least one skin concern';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            errEl.classList.add('hidden');
+
+            document.getElementById('quizSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
+
+            try {
+                const res = await fetch('/api/recommendations/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ skin_issues: Array.from(selectedConcerns) })
+                });
+                const data = await res.json();
+
+                document.getElementById('loadingSection').classList.add('hidden');
+
+                if (data.success) {
+                    document.getElementById('selectedConcerns').textContent = Array.from(selectedConcerns).join(', ');
+                    const grid = document.getElementById('resultsGrid');
+
+                    if (data.recommendations.length === 0) {
+                        grid.innerHTML = `<div class="glass-card rounded-2xl p-8 text-center shadow-md">
+                            <div class="text-4xl mb-3">🤷</div>
+                            <p class="text-gray-500">No matching products found for your concerns. Try different selections!</p>
+                        </div>`;
+                    } else {
+                        grid.innerHTML = data.recommendations.map((r, i) => `
+                            <div class="glass-card rounded-2xl p-6 shadow-md">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0">${i + 1}</div>
+                                    <div class="flex-1">
+                                        <div class="flex items-start justify-between">
+                                            <div>
+                                                <h3 class="font-semibold text-gray-800 text-lg">${r.product_name}</h3>
+                                                <p class="text-sm text-gray-500">${r.brand} · ${r.category}</p>
+                                            </div>
+                                            <p class="text-xl font-bold text-rose-500">₹${r.price != null ? parseFloat(r.price).toFixed(2) : '0.00'}</p>
+                                        </div>
+                                        <p class="text-sm text-gray-500 mt-2">Recommended for: <span class="text-rose-500 font-medium">${r.reason}</span></p>
+                                        <div class="flex items-center gap-4 mt-3">
+                                            <a href="/products/${r.product_id}" class="text-sm text-rose-500 font-medium hover:text-rose-600">View Details →</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+
+                    document.getElementById('resultsSection').classList.remove('hidden');
+                } else {
+                    document.getElementById('quizSection').classList.remove('hidden');
+                    errEl.textContent = data.message || 'Failed to get recommendations';
+                    errEl.classList.remove('hidden');
+                }
+            } catch (err) {
+                document.getElementById('loadingSection').classList.add('hidden');
+                document.getElementById('quizSection').classList.remove('hidden');
+                errEl.textContent = 'Network error. Please try again.';
+                errEl.classList.remove('hidden');
+            }
+        });
+
+        function retakeQuiz() {
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('quizSection').classList.remove('hidden');
+            selectedConcerns.clear();
+            document.querySelectorAll('.concern-btn').forEach(b => b.classList.remove('selected'));
+        }
+    </script>
+</body>
+</html>

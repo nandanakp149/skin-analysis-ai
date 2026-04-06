@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Analysis AI - ER Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            min-width: 200px;
+        }
+
+        .tab-button:hover {
+            background: #efefef;
+            color: #333;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .content {
+            padding: 40px;
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .diagram-container {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .table-section {
+            margin-bottom: 40px;
+        }
+
+        .table-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .entity-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .entity-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .entity-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .entity-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .entity-table tbody tr:hover {
+            background: #f9f9f9;
+            transition: background 0.2s ease;
+        }
+
+        .entity-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .badge-pk {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-fk {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .badge-unique {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .legend {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+        .color-pk {
+            background: #e3f2fd;
+            border: 2px solid #1976d2;
+        }
+
+        .color-fk {
+            background: #fff3e0;
+            border: 2px solid #f57c00;
+        }
+
+        .color-unique {
+            background: #f3e5f5;
+            border: 2px solid #7b1fa2;
+        }
+
+        .color-time {
+            background: #e8f5e9;
+            border: 2px solid #388e3c;
+        }
+
+        .note {
+            background: #fffde7;
+            border-left: 4px solid #fbc02d;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .note strong {
+            color: #f57f17;
+        }
+
+        .relationship-list {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .relationship-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .relationship-item:last-child {
+            border-bottom: none;
+        }
+
+        .relationship-arrow {
+            color: #667eea;
+            font-weight: bold;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .relationship-desc {
+            flex: 1;
+        }
+
+        .relationship-type {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .tab-button {
+                min-width: 150px;
+                padding: 12px 10px;
+                font-size: 0.9em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .legend {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .entity-table th, .entity-table td {
+                padding: 10px 8px;
+                font-size: 0.9em;
+            }
+        }
+
+        .copy-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .copy-button:hover {
+            background: #764ba2;
+        }
+
+        .mermaid-code {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Skin Analysis AI</h1>
+            <p>Entity-Relationship Diagram (ERD)</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('diagram')">📊 ER Diagram</button>
+            <button class="tab-button" onclick="showTab('entities')">📋 Entities & Fields</button>
+            <button class="tab-button" onclick="showTab('relationships')">🔗 Relationships</button>
+            <button class="tab-button" onclick="showTab('sql')">💾 SQL Code</button>
+        </div>
+
+        <!-- ER Diagram Tab -->
+        <div id="diagram" class="content active">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color color-pk"></div>
+                    <span><strong>Primary Key</strong> (PK)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color color-fk"></div>
+                    <span><strong>Foreign Key</strong> (FK)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color color-unique"></div>
+                    <span><strong>Unique Constraint</strong></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color color-time"></div>
+                    <span><strong>Timestamp</strong> Fields</span>
+                </div>
+            </div>
+
+            <div class="diagram-container">
+                <div class="mermaid">
+erDiagram
+    SKIN_TYPE ||--o{ USERS : "has"
+    USERS ||--o{ ANALYSIS_HISTORY : "creates"
+    USERS ||--o{ REVIEWS : "writes"
+    USERS ||--o{ RECOMMENDATIONS : "receives"
+    PRODUCTS ||--o{ REVIEWS : "receives"
+    PRODUCTS ||--o{ RECOMMENDATIONS : "recommended in"
+    PRODUCTS ||--o{ PRODUCT_INGREDIENTS : "contains"
+    INGREDIENTS ||--o{ PRODUCT_INGREDIENTS : "used in"
+    PRODUCTS ||--o{ DELETED_PRODUCTS_AUDIT : "archived in"
+
+    SKIN_TYPE {
+        int skin_type_id PK
+        string skin_type_name UK
+    }
+
+    USERS {
+        int user_id PK
+        string name
+        string email UK
+        string password
+        int age
+        string gender
+        int skin_type_id FK
+        string role
+        date registration_date
+    }
+
+    PRODUCTS {
+        int product_id PK
+        string product_name
+        string brand
+        string category
+        decimal price
+        string description
+        string image_url
+        date expiry_date
+        timestamp created_at
+    }
+
+    INGREDIENTS {
+        int ingredient_id PK
+        string ingredient_name UK
+        string safety_level
+        string description
+    }
+
+    PRODUCT_INGREDIENTS {
+        int product_id PK,FK
+        int ingredient_id PK,FK
+    }
+
+    REVIEWS {
+        int review_id PK
+        int user_id FK
+        int product_id FK
+        int rating
+        string comment
+        timestamp review_date
+    }
+
+    RECOMMENDATIONS {
+        int recommendation_id PK
+        int user_id FK
+        int product_id FK
+        string skin_issue
+        timestamp recommendation_date
+    }
+
+    DELETED_PRODUCTS_AUDIT {
+        int audit_id PK
+        int product_id
+        string product_name
+        string brand
+        string category
+        decimal price
+        date expiry_date
+        timestamp deleted_at
+        string deleted_by
+    }
+
+    ANALYSIS_HISTORY {
+        int id PK
+        int user_id FK
+        string image_path
+        string analysis_result
+        timestamp created_at
+    }
+                </div>
+            </div>
+
+            <div class="note">
+                <strong>📌 Note:</strong> The diagram shows 9 main entities with their relationships. The junction table 
+                <code>PRODUCT_INGREDIENTS</code> implements a many-to-many relationship between <code>PRODUCTS</code> and <code>INGREDIENTS</code>.
+            </div>
+        </div>
+
+        <!-- Entities Tab -->
+        <div id="entities" class="content">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color color-pk"></div>
+                    <span><strong>Primary Key</strong></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color color-fk"></div>
+                    <span><strong>Foreign Key</strong></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color color-unique"></div>
+                    <span><strong>Unique Key</strong></span>
+                </div>
+            </div>
+
+            <!-- Skin_Type Table -->
+            <div class="table-section">
+                <h3>🎨 Skin_Type</h3>
+                <p style="color: #666; margin-bottom: 15px;">Stores predefined skin types for user profiles.</p>
+                <table class="entity-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>skin_type_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-pk">AUTO_INCREMENT</span></td>
+                            <td>Unique identifier</td>
+                        </tr>
+                        <tr>
+                            <td>skin_type_name</td>
+                            <td>ENUM</td>
+                            <td><span class="badge badge-unique">UNIQUE</span></td>
+                            <td>Oily, Dry, Combination, Sensitive, Normal</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Users Table -->
+            <div class="table-section">
+                <h3>👤 Users</h3>
+                <p style="color: #666; margin-bottom: 15px;">Core user information with authentication and profile data.</p>
+                <table class="entity-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>user_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-pk">AUTO_INCREMENT</span></td>
+                            <td>Unique user identifier</td>
+                        </tr>
+                        <tr>
+                            <td>name</td>
+                            <td>VARCHAR(100)</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>User's full name</td>
+                        </tr>
+                        <tr>
+                            <td>email</td>
+                            <td>VARCHAR(255)</td>
+                            <td><span class="badge badge-unique">UNIQUE</span> <span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>Unique email address</td>
+                        </tr>
+                        <tr>
+                            <td>password</td>
+                            <td>VARCHAR(255)</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>Hashed password</td>
+                        </tr>
+                        <tr>
+                            <td>age</td>
+                            <td>INT</td>
+                            <td><span class="badge" style="background: #ffebee; color: #c62828;">CHECK (age >= 18)</span></td>
+                            <td>User's age (minimum 18)</td>
+                        </tr>
+                        <tr>
+                            <td>gender</td>
+                            <td>ENUM</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>Male, Female, Other</td>
+                        </tr>
+                        <tr>
+                            <td>skin_type_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-fk">FOREIGN KEY</span></td>
+                            <td>References Skin_Type</td>
+                        </tr>
+                        <tr>
+                            <td>role</td>
+                            <td>ENUM</td>
+                            <td>DEFAULT 'user'</td>
+                            <td>user or admin</td>
+                        </tr>
+                        <tr>
+                            <td>registration_date</td>
+                            <td>DATE</td>
+                            <td>DEFAULT CURRENT_DATE</td>
+                            <td>Account creation date</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Products Table -->
+            <div class="table-section">
+                <h3>🧴 Products</h3>
+                <p style="color: #666; margin-bottom: 15px;">Skincare products in the system.</p>
+                <table class="entity-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>product_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-pk">AUTO_INCREMENT</span></td>
+                            <td>Unique product identifier</td>
+                        </tr>
+                        <tr>
+                            <td>product_name</td>
+                            <td>VARCHAR(200)</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>Product name</td>
+                        </tr>
+                        <tr>
+                            <td>brand</td>
+                            <td>VARCHAR(100)</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>Manufacturer/brand name</td>
+                        </tr>
+                        <tr>
+                            <td>category</td>
+                            <td>ENUM</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>Cleanser, Moisturizer, Sunscreen, Serum, Toner</td>
+                        </tr>
+                        <tr>
+                            <td>price</td>
+                            <td>DECIMAL(10,2)</td>
+                            <td><span class="badge" style="background: #ffebee; color: #c62828;">CHECK (price > 0)</span></td>
+                            <td>Product price</td>
+                        </tr>
+                        <tr>
+                            <td>description</td>
+                            <td>TEXT</td>
+                            <td>OPTIONAL</td>
+                            <td>Detailed description</td>
+                        </tr>
+                        <tr>
+                            <td>image_url</td>
+                            <td>VARCHAR(500)</td>
+                            <td>DEFAULT NULL</td>
+                            <td>Product image URL</td>
+                        </tr>
+                        <tr>
+                            <td>expiry_date</td>
+                            <td>DATE</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>Product expiration date</td>
+                        </tr>
+                        <tr>
+                            <td>created_at</td>
+                            <td>TIMESTAMP</td>
+                            <td>DEFAULT CURRENT_TIMESTAMP</td>
+                            <td>Creation timestamp</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Ingredients Table -->
+            <div class="table-section">
+                <h3>🧪 Ingredients</h3>
+                <p style="color: #666; margin-bottom: 15px;">Active ingredients used in skincare products.</p>
+                <table class="entity-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ingredient_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-pk">AUTO_INCREMENT</span></td>
+                            <td>Unique ingredient identifier</td>
+                        </tr>
+                        <tr>
+                            <td>ingredient_name</td>
+                            <td>VARCHAR(150)</td>
+                            <td><span class="badge badge-unique">UNIQUE</span></td>
+                            <td>Name of the ingredient</td>
+                        </tr>
+                        <tr>
+                            <td>safety_level</td>
+                            <td>ENUM</td>
+                            <td>DEFAULT 'Safe'</td>
+                            <td>Safe, Moderate, High Risk</td>
+                        </tr>
+                        <tr>
+                            <td>description</td>
+                            <td>TEXT</td>
+                            <td>OPTIONAL</td>
+                            <td>Safety and usage notes</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Product_Ingredients Table -->
+            <div class="table-section">
+                <h3>🔗 Product_Ingredients (Junction Table)</h3>
+                <p style="color: #666; margin-bottom: 15px;">Many-to-many relationship between products and ingredients.</p>
+                <table class="entity-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>product_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-fk">FOREIGN KEY</span></td>
+                            <td>References Products(product_id)</td>
+                        </tr>
+                        <tr>
+                            <td>ingredient_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-fk">FOREIGN KEY</span></td>
+                            <td>References Ingredients(ingredient_id)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Reviews Table -->
+            <div class="table-section">
+                <h3>⭐ Reviews</h3>
+                <p style="color: #666; margin-bottom: 15px;">User reviews and ratings for products.</p>
+                <table class="entity-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>review_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-pk">AUTO_INCREMENT</span></td>
+                            <td>Unique review identifier</td>
+                        </tr>
+                        <tr>
+                            <td>user_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-fk">FOREIGN KEY</span></td>
+                            <td>References Users(user_id)</td>
+                        </tr>
+                        <tr>
+                            <td>product_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-fk">FOREIGN KEY</span></td>
+                            <td>References Products(product_id)</td>
+                        </tr>
+                        <tr>
+                            <td>rating</td>
+                            <td>INT</td>
+                            <td><span class="badge" style="background: #ffebee; color: #c62828;">CHECK (1-5)</span></td>
+                            <td>Rating from 1 to 5 stars</td>
+                        </tr>
+                        <tr>
+                            <td>comment</td>
+                            <td>TEXT</td>
+                            <td>OPTIONAL</td>
+                            <td>User's review comment</td>
+                        </tr>
+                        <tr>
+                            <td>review_date</td>
+                            <td>TIMESTAMP</td>
+                            <td>DEFAULT CURRENT_TIMESTAMP</td>
+                            <td>Review submission date</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Recommendations Table -->
+            <div class="table-section">
+                <h3>💡 Recommendations</h3>
+                <p style="color: #666; margin-bottom: 15px;">AI-generated product recommendations for users.</p>
+                <table class="entity-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>recommendation_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-pk">AUTO_INCREMENT</span></td>
+                            <td>Unique recommendation identifier</td>
+                        </tr>
+                        <tr>
+                            <td>user_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-fk">FOREIGN KEY</span> <span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>References Users(user_id)</td>
+                        </tr>
+                        <tr>
+                            <td>product_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-fk">FOREIGN KEY</span> <span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>References Products(product_id)</td>
+                        </tr>
+                        <tr>
+                            <td>skin_issue</td>
+                            <td>VARCHAR(200)</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>Skin problem addressed</td>
+                        </tr>
+                        <tr>
+                            <td>recommendation_date</td>
+                            <td>TIMESTAMP</td>
+                            <td>DEFAULT CURRENT_TIMESTAMP</td>
+                            <td>Recommendation creation timestamp</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Analysis_History Table -->
+            <div class="table-section">
+                <h3>📷 Analysis_History</h3>
+                <p style="color: #666; margin-bottom: 15px;">Records of AI skin image analysis performed by users.</p>
+                <table class="entity-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-pk">AUTO_INCREMENT</span></td>
+                            <td>Unique analysis record identifier</td>
+                        </tr>
+                        <tr>
+                            <td>user_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-fk">FOREIGN KEY</span> <span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>References Users(user_id)</td>
+                        </tr>
+                        <tr>
+                            <td>image_path</td>
+                            <td>VARCHAR(500)</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>Path to uploaded image</td>
+                        </tr>
+                        <tr>
+                            <td>analysis_result</td>
+                            <td>LONGTEXT</td>
+                            <td><span class="badge" style="background: #e8f5e9; color: #388e3c;">NOT NULL</span></td>
+                            <td>AI analysis output (JSON/text)</td>
+                        </tr>
+                        <tr>
+                            <td>created_at</td>
+                            <td>TIMESTAMP</td>
+                            <td>DEFAULT CURRENT_TIMESTAMP</td>
+                            <td>Analysis timestamp</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Deleted_Products_Audit Table -->
+            <div class="table-section">
+                <h3>🗑️ Deleted_Products_Audit</h3>
+                <p style="color: #666; margin-bottom: 15px;">Audit trail for deleted products (no direct user interaction).</p>
+                <table class="entity-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Constraints</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>audit_id</td>
+                            <td>INT</td>
+                            <td><span class="badge badge-pk">PRIMARY KEY</span> <span class="badge badge-pk">AUTO_INCREMENT</span></td>
+                            <td>Unique audit record identifier</td>
+                        </tr>
+                        <tr>
+                            <td>product_id</td>
+                            <td>INT</td>
+                            <td>ARCHIVED</td>
+                            <td>Original product identifier</td>
+                        </tr>
+                        <tr>
+                            <td>product_name</td>
+                            <td>VARCHAR(200)</td>
+                            <td>ARCHIVED</td>
+                            <td>Product name snapshot</td>
+                        </tr>
+                        <tr>
+                            <td>brand</td>
+                            <td>VARCHAR(100)</td>
+                            <td>ARCHIVED</td>
+                            <td>Brand snapshot</td>
+                        </tr>
+                        <tr>
+                            <td>category</td>
+                            <td>VARCHAR(50)</td>
+                            <td>ARCHIVED</td>
+                            <td>Category snapshot</td>
+                        </tr>
+                        <tr>
+                            <td>price</td>
+                            <td>DECIMAL(10,2)</td>
+                            <td>ARCHIVED</td>
+                            <td>Price snapshot</td>
+                        </tr>
+                        <tr>
+                            <td>expiry_date</td>
+                            <td>DATE</td>
+                            <td>ARCHIVED</td>
+                            <td>Expiry date snapshot</td>
+                        </tr>
+                        <tr>
+                            <td>deleted_at</td>
+                            <td>TIMESTAMP</td>
+                            <td>DEFAULT CURRENT_TIMESTAMP</td>
+                            <td>Deletion timestamp</td>
+                        </tr>
+                        <tr>
+                            <td>deleted_by</td>
+                            <td>VARCHAR(100)</td>
+                            <td>DEFAULT 'system'</td>
+                            <td>Admin user or system process</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Relationships Tab -->
+        <div id="relationships" class="content">
+            <h2 style="color: #667eea; margin-bottom: 30px; font-size: 1.8em;">🔗 Entity Relationships</h2>
+
+            <div class="relationship-list">
+                <div class="relationship-item">
+                    <div class="relationship-arrow">Skin_Type → Users</div>
+                    <div class="relationship-desc">
+                        <strong>One-to-Many</strong><br>
+                        Each skin type can be associated with multiple users. Users have one skin type (optional).
+                        <div class="relationship-type">CASCADE: ON DELETE SET NULL</div>
+                    </div>
+                </div>
+
+                <div class="relationship-item">
+                    <div class="relationship-arrow">Users → Analysis_History</div>
+                    <div class="relationship-desc">
+                        <strong>One-to-Many</strong><br>
+                        Each user can have multiple analysis records. Analysis records are created by users.
+                        <div class="relationship-type">CASCADE: ON DELETE CASCADE</div>
+                    </div>
+                </div>
+
+                <div class="relationship-item">
+                    <div class="relationship-arrow">Users → Reviews</div>
+                    <div class="relationship-desc">
+                        <strong>One-to-Many</strong><br>
+                        Each user can write multiple reviews. Each review is written by one user.
+                        <div class="relationship-type">CASCADE: ON DELETE CASCADE</div>
+                    </div>
+                </div>
+
+                <div class="relationship-item">
+                    <div class="relationship-arrow">Users → Recommendations</div>
+                    <div class="relationship-desc">
+                        <strong>One-to-Many</strong><br>
+                        Each user receives multiple recommendations. Each recommendation is for one user.
+                        <div class="relationship-type">CASCADE: ON DELETE CASCADE</div>
+                    </div>
+                </div>
+
+                <div class="relationship-item">
+                    <div class="relationship-arrow">Products → Reviews</div>
+                    <div class="relationship-desc">
+                        <strong>One-to-Many</strong><br>
+                        Each product can have multiple reviews. Each review is for one product.
+                        <div class="relationship-type">CASCADE: ON DELETE CASCADE</div>
+                    </div>
+                </div>
+
+                <div class="relationship-item">
+                    <div class="relationship-arrow">Products → Recommendations</div>
+                    <div class="relationship-desc">
+                        <strong>One-to-Many</strong><br>
+                        Each product can be recommended multiple times. Each recommendation refers to one product.
+                        <div class="relationship-type">CASCADE: ON DELETE CASCADE</div>
+                    </div>
+                </div>
+
+                <div class="relationship-item">
+                    <div class="relationship-arrow">Products ↔ Ingredients</div>
+                    <div class="relationship-desc">
+                        <strong>Many-to-Many</strong> (via Product_Ingredients junction table)<br>
+                        Products contain multiple ingredients, and ingredients are used in multiple products.
+                        <div class="relationship-type">CASCADE: ON DELETE CASCADE</div>
+                    </div>
+                </div>
+
+                <div class="relationship-item">
+                    <div class="relationship-arrow">Products → Deleted_Products_Audit</div>
+                    <div class="relationship-desc">
+                        <strong>One-to-Many</strong> (Audit Trail)<br>
+                        When a product is deleted, a record is automatically created in the audit table via trigger.
+                        <div class="relationship-type">Trigger: log_deleted_product</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <h3 style="color: #667eea; margin-bottom: 20px; font-size: 1.3em;">⚙️ Database Constraints & Triggers</h3>
+                
+                <div style="background: #f9f9f9; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                    <h4 style="color: #333; margin-bottom: 15px;">✓ Triggers Implemented</h4>
+                    <ul style="list-style-position: inside; color: #666; line-height: 2;">
+                        <li><strong>prevent_review_on_expired_product:</strong> Prevents users from reviewing expired products</li>
+                        <li><strong>update_recommendation_timestamp:</strong> Auto-updates recommendation_date on modification</li>
+                        <li><strong>log_deleted_product:</strong> Archives deleted product data to audit table</li>
+                        <li><strong>prevent_duplicate_review:</strong> Ensures users can only review each product once</li>
+                    </ul>
+                </div>
+
+                <div style="background: #f9f9f9; border-radius: 8px; padding: 20px; border-left: 4px solid #667eea;">
+                    <h4 style="color: #333; margin-bottom: 15px;">✓ Check Constraints</h4>
+                    <ul style="list-style-position: inside; color: #666; line-height: 2;">
+                        <li><strong>Users.age >= 18:</strong> Only adults can register</li>
+                        <li><strong>Products.price > 0:</strong> Product price must be positive</li>
+                        <li><strong>Reviews.rating 1-5:</strong> Ratings must be between 1 and 5 stars</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SQL Code Tab -->
+        <div id="sql" class="content">
+            <h2 style="color: #667eea; margin-bottom: 20px; font-size: 1.8em;">💾 Complete SQL Schema</h2>
+            
+            <p style="color: #666; margin-bottom: 20px;">
+                The complete database schema is defined in <code>database/complete_schema.sql</code>. 
+                The file includes DDL statements, DML operations, views, and trigger definitions.
+            </p>
+
+            <button class="copy-button" onclick="copySQLCode()">📋 Copy All SQL Code</button>
+
+            <div class="mermaid-code" id="sql-code">-- =====================================================
+-- Skincare Product Recommendation & Analysis System
+-- Complete Database Schema - DDL, DML, Views, Triggers
+-- =====================================================
+
+CREATE DATABASE IF NOT EXISTS skin_analyser;
+USE skin_analyser;
+
+-- =====================================================
+-- DDL: TABLE CREATION WITH INTEGRITY CONSTRAINTS
+-- =====================================================
+
+-- 1. Skin_Type Table
+CREATE TABLE IF NOT EXISTS Skin_Type (
+    skin_type_id INT AUTO_INCREMENT PRIMARY KEY,
+    skin_type_name ENUM('Oily', 'Dry', 'Combination', 'Sensitive', 'Normal') NOT NULL UNIQUE
+);
+
+-- 2. Users Table
+CREATE TABLE IF NOT EXISTS Users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    age INT NOT NULL CHECK (age >= 18),
+    gender ENUM('Male', 'Female', 'Other') NOT NULL,
+    skin_type_id INT,
+    role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+    registration_date DATE DEFAULT (CURRENT_DATE),
+    FOREIGN KEY (skin_type_id) REFERENCES Skin_Type(skin_type_id) ON DELETE SET NULL
+);
+
+-- 3. Products Table
+CREATE TABLE IF NOT EXISTS Products (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(200) NOT NULL,
+    brand VARCHAR(100) NOT NULL,
+    category ENUM('Cleanser', 'Moisturizer', 'Sunscreen', 'Serum', 'Toner') NOT NULL,
+    price DECIMAL(10,2) NOT NULL CHECK (price > 0),
+    description TEXT,
+    image_url VARCHAR(500) DEFAULT NULL,
+    expiry_date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Ingredients Table
+CREATE TABLE IF NOT EXISTS Ingredients (
+    ingredient_id INT AUTO_INCREMENT PRIMARY KEY,
+    ingredient_name VARCHAR(150) NOT NULL UNIQUE,
+    safety_level ENUM('Safe', 'Moderate', 'High Risk') NOT NULL DEFAULT 'Safe',
+    description TEXT
+);
+
+-- 5. Product_Ingredients Junction Table
+CREATE TABLE IF NOT EXISTS Product_Ingredients (
+    product_id INT NOT NULL,
+    ingredient_id INT NOT NULL,
+    PRIMARY KEY (product_id, ingredient_id),
+    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE CASCADE,
+    FOREIGN KEY (ingredient_id) REFERENCES Ingredients(ingredient_id) ON DELETE CASCADE
+);
+
+-- 6. Reviews Table
+CREATE TABLE IF NOT EXISTS Reviews (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE CASCADE
+);
+
+-- 7. Recommendations Table
+CREATE TABLE IF NOT EXISTS Recommendations (
+    recommendation_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    skin_issue VARCHAR(200) NOT NULL,
+    recommendation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE CASCADE
+);
+
+-- 8. Audit table for deleted products
+CREATE TABLE IF NOT EXISTS Deleted_Products_Audit (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT,
+    product_name VARCHAR(200),
+    brand VARCHAR(100),
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    expiry_date DATE,
+    deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_by VARCHAR(100) DEFAULT 'system'
+);
+
+-- 9. Analysis History (AI image analysis)
+CREATE TABLE IF NOT EXISTS Analysis_History (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    image_path VARCHAR(500) NOT NULL,
+    analysis_result LONGTEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+-- =====================================================
+-- VIEWS
+-- =====================================================
+
+-- View 1: ProductSummary
+CREATE OR REPLACE VIEW ProductSummary AS
+SELECT 
+    p.product_id, p.product_name, p.brand, p.category, p.price, p.expiry_date,
+    COALESCE(ROUND(AVG(r.rating), 2), 0) AS avg_rating,
+    COUNT(DISTINCT r.review_id) AS review_count,
+    COUNT(DISTINCT pi.ingredient_id) AS ingredient_count
+FROM Products p
+LEFT JOIN Reviews r ON p.product_id = r.product_id
+LEFT JOIN Product_Ingredients pi ON p.product_id = pi.product_id
+GROUP BY p.product_id, p.product_name, p.brand, p.category, p.price, p.expiry_date;
+
+-- View 2: UserRecommendations
+CREATE OR REPLACE VIEW UserRecommendations AS
+SELECT 
+    u.user_id, u.name AS user_name, u.email,
+    p.product_name, p.brand, p.category, p.price,
+    rec.skin_issue, rec.recommendation_date, rec.recommendation_id
+FROM Recommendations rec
+JOIN Users u ON rec.user_id = u.user_id
+JOIN Products p ON rec.product_id = p.product_id;
+
+-- View 3: RiskyIngredients
+CREATE OR REPLACE VIEW RiskyIngredients AS
+SELECT 
+    p.product_id, p.product_name, p.brand,
+    i.ingredient_id, i.ingredient_name, i.safety_level, i.description AS ingredient_description
+FROM Products p
+JOIN Product_Ingredients pi ON p.product_id = pi.product_id
+JOIN Ingredients i ON pi.ingredient_id = i.ingredient_id
+WHERE i.safety_level = 'High Risk';
+
+-- View 4: RecentReviews
+CREATE OR REPLACE VIEW RecentReviews AS
+SELECT 
+    r.review_id, u.name AS user_name, u.email,
+    p.product_name, p.brand, r.rating, r.comment, r.review_date
+FROM Reviews r
+JOIN Users u ON r.user_id = u.user_id
+JOIN Products p ON r.product_id = p.product_id
+ORDER BY r.review_date DESC
+LIMIT 10;
+
+-- =====================================================
+-- TRIGGERS
+-- =====================================================
+
+DROP TRIGGER IF EXISTS prevent_review_on_expired_product;
+DROP TRIGGER IF EXISTS update_recommendation_timestamp;
+DROP TRIGGER IF EXISTS log_deleted_product;
+DROP TRIGGER IF EXISTS prevent_duplicate_review;
+
+DELIMITER //
+
+CREATE TRIGGER prevent_review_on_expired_product
+BEFORE INSERT ON Reviews
+FOR EACH ROW
+BEGIN
+    DECLARE prod_expiry DATE;
+    SELECT expiry_date INTO prod_expiry FROM Products WHERE product_id = NEW.product_id;
+    IF prod_expiry IS NOT NULL AND prod_expiry < CURDATE() THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot review an expired product';
+    END IF;
+END //
+
+CREATE TRIGGER update_recommendation_timestamp
+BEFORE UPDATE ON Recommendations
+FOR EACH ROW
+BEGIN
+    SET NEW.recommendation_date = CURRENT_TIMESTAMP;
+END //
+
+CREATE TRIGGER log_deleted_product
+BEFORE DELETE ON Products
+FOR EACH ROW
+BEGIN
+    INSERT INTO Deleted_Products_Audit (product_id, product_name, brand, category, price, expiry_date)
+    VALUES (OLD.product_id, OLD.product_name, OLD.brand, OLD.category, OLD.price, OLD.expiry_date);
+END //
+
+CREATE TRIGGER prevent_duplicate_review
+BEFORE INSERT ON Reviews
+FOR EACH ROW
+BEGIN
+    DECLARE review_count INT;
+    SELECT COUNT(*) INTO review_count FROM Reviews WHERE user_id = NEW.user_id AND product_id = NEW.product_id;
+    IF review_count > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'You have already reviewed this product';
+    END IF;
+END //
+
+DELIMITER ;
+            </div>
+        </div>
+
+        <footer>
+            <p>🔬 Skin Analysis AI - Entity-Relationship Diagram | Generated with Mermaid & HTML5</p>
+            <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.8;">Database: skin_analyser | 9 Core Entities | 4 Database Views | 4 Smart Triggers</p>
+        </footer>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all content
+            const contents = document.querySelectorAll('.content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            // Show selected content and highlight button
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Copy SQL code functionality
+        function copySQLCode() {
+            const sqlCode = document.getElementById('sql-code').innerText;
+            navigator.clipboard.writeText(sqlCode).then(() => {
+                const btn = event.target;
+                const originalText = btn.innerText;
+                btn.innerText = '✅ Copied to Clipboard!';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true
+            }
+        });
+        mermaid.contentLoaded();
+    </script>
+</body>
+</html>

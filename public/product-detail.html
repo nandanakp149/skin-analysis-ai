@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail | Skin Analyser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], serif: ['Playfair Display','serif'] } } } }</script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #fff1f2 50%, #f0fdf4 75%, #fdf2f8 100%); }
+        .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); }
+        .star { color: #fbbf24; }
+        .safety-safe { background: #dcfce7; color: #166534; }
+        .safety-moderate { background: #fef9c3; color: #854d0e; }
+        .safety-risky { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Navbar -->
+    <nav class="glass-card sticky top-0 z-50 border-b border-white/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    </div>
+                    <span class="font-serif text-xl font-bold text-gray-800">Skin Analyser</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <a href="/" class="text-gray-600 hover:text-rose-500 font-medium text-sm transition-colors">Home</a>
+                    <a href="/products" class="text-gray-600 hover:text-rose-500 font-medium text-sm transition-colors">Products</a>
+                    <div id="authLinks"><a href="/login" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Login</a></div>
+                    <div id="userLinks" class="hidden flex items-center gap-3">
+                        <a href="/dashboard" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Dashboard</a>
+                        <a href="/logout" class="text-sm text-gray-500 hover:text-rose-500">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="content">
+        <div class="text-center py-16 text-gray-400">Loading product details...</div>
+    </div>
+
+    <script>
+        const productId = window.location.pathname.split('/').pop();
+        let isLoggedIn = false;
+        let currentUser = null;
+
+        fetch('/api/user').then(r => r.json()).then(d => {
+            if (d.success) {
+                isLoggedIn = true;
+                currentUser = d.user;
+                document.getElementById('authLinks').classList.add('hidden');
+                document.getElementById('userLinks').classList.remove('hidden');
+                document.getElementById('userLinks').classList.add('flex');
+            }
+            loadProduct();
+        }).catch(() => loadProduct());
+
+        async function loadProduct() {
+            try {
+                const res = await fetch(`/api/products/${productId}`);
+                const data = await res.json();
+                if (!data.success) {
+                    document.getElementById('content').innerHTML = `<div class="text-center py-16"><div class="text-5xl mb-4">😔</div><p class="text-gray-500 font-medium text-lg">Product not found</p><a href="/products" class="text-rose-500 text-sm mt-2 inline-block">← Back to Products</a></div>`;
+                    return;
+                }
+                const p = data.product;
+                const isExpired = p.expiry_date && new Date(p.expiry_date) < new Date();
+                document.title = `${p.product_name} | Skin Analyser`;
+
+                let html = `
+                <!-- Breadcrumb -->
+                <div class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+                    <a href="/" class="hover:text-rose-500">Home</a>
+                    <span>›</span>
+                    <a href="/products" class="hover:text-rose-500">Products</a>
+                    <span>›</span>
+                    <a href="/products?category=${p.category}" class="hover:text-rose-500">${p.category}</a>
+                    <span>›</span>
+                    <span class="text-gray-600">${p.product_name}</span>
+                </div>
+
+                <!-- Product Info -->
+                <div class="glass-card rounded-2xl p-8 shadow-lg mb-8">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="md:w-1/3">
+                            <div class="w-full aspect-square bg-gradient-to-br from-rose-100 to-pink-50 rounded-2xl flex items-center justify-center text-6xl">
+                                ${p.category === 'Cleanser' ? '🧴' : p.category === 'Moisturizer' ? '💧' : p.category === 'Sunscreen' ? '☀️' : p.category === 'Serum' ? '✨' : '🌿'}
+                            </div>
+                        </div>
+                        <div class="md:w-2/3">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="px-3 py-1 bg-rose-50 text-rose-600 text-xs font-medium rounded-lg">${p.category}</span>
+                                ${isExpired ? '<span class="px-3 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-lg">⚠️ Expired</span>' : ''}
+                            </div>
+                            <h1 class="font-serif text-3xl font-bold text-gray-800 mb-1">${p.product_name}</h1>
+                            <p class="text-gray-500 text-lg mb-4">by ${p.brand}</p>
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="flex text-lg">${'<span class="star">★</span>'.repeat(Math.round(p.avg_rating || 0))}${'<span class="text-gray-300">★</span>'.repeat(5 - Math.round(p.avg_rating || 0))}</div>
+                                <span class="text-gray-500">${p.avg_rating ? parseFloat(p.avg_rating).toFixed(1) : 'No ratings'} (${data.reviews.length} review${data.reviews.length !== 1 ? 's' : ''})</span>
+                            </div>
+                            <p class="text-3xl font-bold text-rose-500 mb-4">₹${p.price ? parseFloat(p.price).toFixed(2) : '0.00'}</p>
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <p><span class="font-medium text-gray-700">Category:</span> ${p.category || 'Unknown'}</p>
+                                ${p.expiry_date ? `<p><span class="font-medium text-gray-700">Expiry:</span> ${new Date(p.expiry_date).toLocaleDateString()}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ingredients -->
+                <div class="glass-card rounded-2xl p-6 shadow-md mb-8">
+                    <h2 class="font-serif text-xl font-bold text-gray-800 mb-4">Ingredients (${data.ingredients.length})</h2>
+                    ${data.ingredients.length === 0 ? '<p class="text-gray-400 text-sm">No ingredients listed</p>' : `
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        ${data.ingredients.map(ing => `
+                            <div class="flex items-center justify-between p-3 rounded-xl ${ing.safety_level === 'Safe' ? 'bg-green-50' : ing.safety_level === 'Moderate' ? 'bg-yellow-50' : 'bg-red-50'}">
+                                <div>
+                                    <p class="font-medium text-gray-800 text-sm">${ing.ingredient_name}</p>
+                                    <p class="text-xs text-gray-500">${ing.function_in_product || 'General ingredient'}</p>
+                                </div>
+                                <span class="px-2.5 py-1 text-xs font-medium rounded-lg safety-${ing.safety_level.toLowerCase()}">${ing.safety_level}</span>
+                            </div>
+                        `).join('')}
+                    </div>`}
+                    ${data.riskyIngredients && data.riskyIngredients.length > 0 ? `
+                    <div class="mt-4 p-4 bg-red-50 border border-red-100 rounded-xl">
+                        <h3 class="font-semibold text-red-700 text-sm mb-2">⚠️ Risky Ingredients Warning</h3>
+                        <ul class="text-sm text-red-600 space-y-1">
+                            ${data.riskyIngredients.map(r => `<li>• <strong>${r.ingredient_name}</strong> — ${r.known_side_effects || 'May cause irritation'}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+                </div>
+
+                <!-- Reviews -->
+                <div class="glass-card rounded-2xl p-6 shadow-md mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-serif text-xl font-bold text-gray-800">Reviews (${data.reviews.length})</h2>
+                    </div>
+
+                    ${isLoggedIn && !isExpired ? `
+                    <form id="reviewForm" class="mb-6 p-4 bg-gray-50 rounded-xl">
+                        <h3 class="font-medium text-gray-700 mb-3">Write a Review</h3>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-sm text-gray-600">Rating:</span>
+                            <div id="starPicker" class="flex gap-1 cursor-pointer">
+                                ${[1,2,3,4,5].map(i => `<span data-val="${i}" class="text-2xl text-gray-300 hover:text-yellow-400 transition-colors">★</span>`).join('')}
+                            </div>
+                            <input type="hidden" id="ratingVal" value="0">
+                        </div>
+                        <textarea id="commentInput" rows="3" placeholder="Share your experience..."
+                            class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-rose-300 focus:outline-none focus:ring-2 focus:ring-rose-100 text-sm resize-none"></textarea>
+                        <div class="flex items-center justify-between mt-3">
+                            <p id="reviewError" class="text-sm text-red-500 hidden"></p>
+                            <button type="submit" class="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg transition-all ml-auto">Submit Review</button>
+                        </div>
+                    </form>` : !isLoggedIn ? `<p class="mb-4 p-3 bg-gray-50 rounded-xl text-sm text-gray-500"><a href="/login" class="text-rose-500 font-medium">Login</a> to write a review</p>` : `<p class="mb-4 p-3 bg-yellow-50 rounded-xl text-sm text-yellow-700">Reviews are disabled for expired products</p>`}
+
+                    <div id="reviewsList" class="space-y-4">
+                        ${data.reviews.length === 0 ? '<p class="text-gray-400 text-sm text-center py-4">No reviews yet. Be the first!</p>' : data.reviews.map(r => `
+                            <div class="p-4 bg-white/60 rounded-xl">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 bg-gradient-to-br from-rose-400 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold">${r.user_name.charAt(0)}</div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800">${r.user_name}</p>
+                                            <p class="text-xs text-gray-400">${new Date(r.review_date).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex text-sm">${'<span class="star">★</span>'.repeat(r.rating)}${'<span class="text-gray-300">★</span>'.repeat(5 - r.rating)}</div>
+                                </div>
+                                <p class="text-sm text-gray-600">${r.comment || '<em class="text-gray-400">No comment</em>'}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <a href="/products" class="text-rose-500 font-medium text-sm hover:text-rose-600 transition-colors">← Back to All Products</a>
+                </div>`;
+
+                document.getElementById('content').innerHTML = html;
+
+                // Star picker
+                const starPicker = document.getElementById('starPicker');
+                if (starPicker) {
+                    const stars = starPicker.querySelectorAll('span');
+                    stars.forEach(s => {
+                        s.addEventListener('click', () => {
+                            const val = parseInt(s.dataset.val);
+                            document.getElementById('ratingVal').value = val;
+                            stars.forEach((st, i) => {
+                                st.classList.toggle('text-yellow-400', i < val);
+                                st.classList.toggle('text-gray-300', i >= val);
+                            });
+                        });
+                    });
+                }
+
+                // Review form
+                const reviewForm = document.getElementById('reviewForm');
+                if (reviewForm) {
+                    reviewForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const rating = parseInt(document.getElementById('ratingVal').value);
+                        const comment = document.getElementById('commentInput').value.trim();
+                        const errEl = document.getElementById('reviewError');
+
+                        if (!rating || rating < 1) {
+                            errEl.textContent = 'Please select a rating';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }
+
+                        try {
+                            const res = await fetch(`/api/products/${productId}/reviews`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ rating, comment })
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                window.location.reload();
+                            } else {
+                                errEl.textContent = data.message || 'Failed to submit review';
+                                errEl.classList.remove('hidden');
+                            }
+                        } catch (err) {
+                            errEl.textContent = 'Network error';
+                            errEl.classList.remove('hidden');
+                        }
+                    });
+                }
+            } catch (err) {
+                document.getElementById('content').innerHTML = '<div class="text-center py-16 text-red-400">Error loading product</div>';
+            }
+        }
+    </script>
+</body>
+</html>

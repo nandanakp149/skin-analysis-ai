@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Recommendations | Skin Analyser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], serif: ['Playfair Display','serif'] } } } }</script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 25%, #fff1f2 50%, #f0fdf4 75%, #fdf2f8 100%); }
+        .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); }
+        .star { color: #fbbf24; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <nav class="glass-card sticky top-0 z-50 border-b border-white/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-gradient-to-br from-rose-400 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    </div>
+                    <span class="font-serif text-xl font-bold text-gray-800">Skin Analyser</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <a href="/" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Home</a>
+                    <a href="/products" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Products</a>
+                    <a href="/dashboard" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Dashboard</a>
+                    <a href="/skin-quiz" class="text-gray-600 hover:text-rose-500 font-medium text-sm">Skin Quiz</a>
+                    <a href="/logout" class="text-sm text-gray-500 hover:text-rose-500">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-10">
+            <h1 class="font-serif text-3xl font-bold text-gray-800 mb-2">My Recommendations</h1>
+            <p class="text-gray-500">Products recommended based on your skin profile and quiz results</p>
+        </div>
+
+        <div id="content">
+            <div class="text-center py-16 text-gray-400">Loading recommendations...</div>
+        </div>
+    </div>
+
+    <script>
+        async function load() {
+            try {
+                const res = await fetch('/api/recommendations');
+                const data = await res.json();
+                const container = document.getElementById('content');
+
+                if (!data.success) {
+                    container.innerHTML = '<div class="text-center py-16 text-red-400">Failed to load recommendations</div>';
+                    return;
+                }
+
+                if (data.recommendations.length === 0) {
+                    container.innerHTML = `
+                        <div class="glass-card rounded-2xl p-10 text-center shadow-lg">
+                            <div class="text-5xl mb-4">💡</div>
+                            <h2 class="font-serif text-xl font-bold text-gray-800 mb-2">No Recommendations Yet</h2>
+                            <p class="text-gray-500 mb-6">Take our skin quiz to get personalized product recommendations!</p>
+                            <a href="/skin-quiz" class="inline-block px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all">Take Skin Quiz</a>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        ${data.recommendations.map(r => `
+                            <div class="glass-card rounded-2xl p-6 shadow-md hover:shadow-lg transition-shadow">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <h3 class="font-semibold text-gray-800 text-lg">${r.product_name}</h3>
+                                            <span class="px-2.5 py-0.5 bg-rose-50 text-rose-600 text-xs font-medium rounded-lg">${r.category}</span>
+                                        </div>
+                                        <p class="text-sm text-gray-500 mb-2">${r.brand}</p>
+                                        <p class="text-sm text-gray-500">Reason: <span class="text-rose-500 font-medium">${r.reason}</span></p>
+                                        <p class="text-xs text-gray-400 mt-1">Recommended on ${new Date(r.recommended_at).toLocaleDateString()}</p>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <p class="text-2xl font-bold text-rose-500">₹${r.price ? parseFloat(r.price).toFixed(2) : '0.00'}</p>
+                                        <a href="/products/${r.product_id}" class="px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg transition-all whitespace-nowrap">View Product</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="text-center mt-8">
+                        <a href="/skin-quiz" class="text-rose-500 font-medium text-sm hover:text-rose-600">Retake Skin Quiz →</a>
+                    </div>`;
+            } catch (err) {
+                document.getElementById('content').innerHTML = '<div class="text-center py-16 text-red-400">Error loading recommendations</div>';
+            }
+        }
+
+        load();
+    </script>
+</body>
+</html>
